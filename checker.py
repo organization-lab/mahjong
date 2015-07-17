@@ -7,13 +7,26 @@ import re
 
 class Card:
     """docstring for card"""
-    def __init__(self, card):
+    def __init__(self, card, flag=False):
         super(Card, self).__init__()
         self.rank = int(re.search('[1-9]', card).group())
-        self.suit = re.search('[mpsz]', card).group()        
+        self.suit = re.search('[mpsz]', card).group()
+        self.flag = flag        
 
     def __str__(self):
         return str(self.rank) + self.suit
+
+    def get_suit(self):
+        return self.suit
+
+    def get_rank(self):
+        return self.rank
+
+    def get_flag(self):
+        return self.flag
+
+    def set_flag(self, flag):
+        self.flag = flag
 
 '''
 # test Card class
@@ -26,6 +39,7 @@ class Mianzi(object):
     """docstring for Mianzi"""
     def __init__(self, card1, card2, card3):
         super(Mianzi, self).__init__()
+
         self.card1 = card1
         self.card2 = card2
         self.card3 = card3
@@ -61,40 +75,34 @@ print(quetou2)
 # end test
 '''
 
-test_hand = [('1m',0), ('2m',0), ('3m',0), 
-            ('4p', 0), ('5p',0), ('6p', 0), 
-            ('7s', 0), ('8s', 0), ('9s', 0), 
-            ('1z', 0), ('1z', 0), ('1z', 0),
-            ('5z', 0), ('5z', 0)]
-#init test hand
-hand = []
-for i in test_hand:
-    hand.append([Card(i[0]),i[1]])
+def checker(raw_hand):
+    # change raw hand to Card hand
+    hand = []
+    for card in raw_hand:
+        hand.append(Card(card))
 
-def checker(hand):
     tempset = []
     i = 0
     j = i + 1
     k = j + 1
     while i < len(hand): # i.e. 14
-        if hand[i][1] == True:
+        if hand[i].get_flag() == True:
             i += 1
         else:
             j = i + 1
             while j < len(hand) and k < len(hand):
-                if hand[j][1] == True:
+                if hand[j].get_flag() == True:
                     j += 1
                 else:
                     k = j + 1
-                    if isdazi(hand[i][0], hand[j][0]):
-                        print(hand[i][0], hand[j][0])
+                    if isdazi(hand[i], hand[j]):
+                        print(hand[i].get_rank(), hand[j].get_rank())
                         while k < len(hand):
-                            if ismianzi(hand[i][0], hand[j][0], hand[k][0]):
-                                tempset.append(Mianzi(hand[i][0], hand[j][0], hand[k][0]))
-                                print(Mianzi(hand[i][0], hand[j][0], hand[k][0]))
-                                hand[i][1] = True
-                                hand[j][1] = True
-                                hand[k][1] = True
+                            if ismianzi(hand[i], hand[j], hand[k]):
+                                tempset.append(Mianzi(hand[i], hand[j], hand[k]))
+                                hand[i].set_flag(True)
+                                hand[j].set_flag(True)
+                                hand[k].set_flag(True)                                
                                 break
                             else: 
                                 k += 1
@@ -104,16 +112,9 @@ def checker(hand):
             i += 1
     print('check finished:')
     for i in tempset:
-        print (i)
+        print(i)
 
 
-def test_set(tempset, card):
-    if len(tempset) == 0: #no card added for set
-        tempset.append(card)
-    elif len(tempset) == 1 or len(tempset) == 2: #one/two card added
-        if card.rank == tempset[-1].rank + 1: #right card for straight
-            tempset.append(card)
-    return tempset
 
 def ismianzi(card1, card2, card3):
     if card1.suit == card2.suit and card1.suit == card3.suit:
@@ -149,4 +150,20 @@ print('isdazi', isdazi(Card('1m'), Card('2m')))
 print('isdazi', isdazi(Card('1m'), Card('3m')))
 '''
 
-checker(hand)
+def hand_processer(raw_hand):
+    # process raw hand to single card list
+    hand = []
+
+    for split in re.findall('\d+[mpsz]', raw_hand):
+        suit = re.search('[mpsz]', split).group()
+        ranks = re.findall('\d', split)
+        test = ranks.sort() # sort ranks, seems no need for sorting suit.
+        for rank in ranks:
+            hand.append(rank + suit)
+
+    return hand
+
+if __name__ == '__main__':
+    test_hand = '122343m456s789p11z'
+    # print(hand_processer(test_hand))
+    checker(hand_processer(test_hand))
