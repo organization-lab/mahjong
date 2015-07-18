@@ -44,15 +44,29 @@ class Mianzi(object):
         self.card2 = card2
         self.card3 = card3
         self.index = card1.rank
+
     def __str__(self):
-        return str(self.card1) + str(self.card2) + str(self.card3) + str(self.index)
+        if self.isvalid():
+            return str(self.card1) + str(self.card2) + str(self.card3) + str(self.index)
+        else:
+            return 'not valid!'
+
+    def isvalid(self):
+        if self.card1.suit == self.card2.suit and self.card1.suit == self.card3.suit:
+            if self.card1.rank == self.card2.rank - 1 and self.card2.rank == self.card3.rank - 1:
+                return True
+            elif self.card1.rank == self.card2.rank and self.card1.rank == self.card3.rank:
+                return True
+        return False
 
 '''
 # test Mianzi class
 mianzi1 = Mianzi(Card('1m'), Card('2m'), Card('3m'))
 print(mianzi1)
-mianzi2 = Mianzi(Card('3m'), Card('4m'), Card('5m'))
-print(mianzi2)
+print(mianzi1.isvalid())
+
+mianzi2 = Mianzi(Card('3m'), Card('4m'), Card('6m'))
+print(mianzi2.isvalid())
 # end test
 '''
 
@@ -60,18 +74,28 @@ class Quetou(object):
     """docstring for Quetou"""
     def __init__(self, card1, card2):
         super(Quetou, self).__init__()
+        
         self.card1 = card1
         self.card2 = card2
         self.index = card1.rank
     def __str__(self):
-        return str(self.card1) + str(self.card2) + str(self.index)
-
+        if self.isvalid():
+            return str(self.card1) + str(self.card2) + str(self.index)
+        else:
+            return 'not valid!'
+    def isvalid(self):
+        if self.card1.suit == self.card2.suit and self.card1.rank == self.card2.rank:
+            return True
+        else:
+            return False
 '''
 # test Quetou class
 quetou1 = Quetou(Card('1m'), Card('1m'))
 print(quetou1)
-quetou2 = Quetou(Card('5z'), Card('5z'))
+print(quetou1.isvalid())
+quetou2 = Quetou(Card('5z'), Card('3z'))
 print(quetou2)
+print(quetou2.isvalid())
 # end test
 '''
 
@@ -118,29 +142,47 @@ def checker(raw_hand):
         print(i)
 
 def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
+    finished_hand = []
+    # every iteration: return finished hand
+
     # basic logic for 2/3 card
     if mianzi_needed == 1 and len(hand) == 3:
-        return ismianzi(hand[0], hand[1], hand[2])
+        return Mianzi(hand[0], hand[1], hand[2])
     if quetou_needed == 1 and len(hand) == 2:
-        return isquetou(hand[0], hand[1])
+        return Quetou(hand[0], hand[1])
     # iteration method
     i = 0
     j = i + 1
     k = j + 1
     while j < len(hand):
+        # try quetou first. if not work, try mianzi
+        if quetou_needed and Quetou(hand[i], hand[j]).isvalid():
+            iter_hand = hand[:] # slicing to create a copy (instead of '=', modifying the original list)
+            del iter_hand[j]
+            del iter_hand[i]
+            if hand_checker(iter_hand, mianzi_needed, quetou_needed - 1):
+                print('OK', len(hand)) # test
+                for card in hand:
+                    card.flag = True
+                    print(card, end=',') # test card in hand
+                print() # test
+                return hand
+            else: 
+                print('not check.', hand[i], hand[j])
+                j += 1
         while k < len(hand):
-            if ismianzi(hand[i], hand[j], hand[k]):
-                print(i,j,k, hand[i], hand[j], hand[k]) # test
-                iter_hand = hand
+            if Mianzi(hand[i], hand[j], hand[k]).isvalid():
+                print(len(hand),i,j,k, hand[i], hand[j], hand[k]) # test
+                iter_hand = hand[:] # slicing to create a copy (instead of '=', modifying the original list)
                 del iter_hand[k] # must delete from end to begin
                 del iter_hand[j]
                 del iter_hand[i]
-                for i in iter_hand:
-                    print(i)
                 if hand_checker(iter_hand, mianzi_needed - 1, quetou_needed):
-                    print('OK')
+                    print('OK', len(hand)) # test
                     for card in hand:
                         card.flag = True
+                        print(card, end=',') # test card in hand
+                    print() # test
                     return hand
             else: 
                 k += 1
@@ -148,21 +190,6 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
             j += 1
     return None
 
-
-def ismianzi(card1, card2, card3):
-    if card1.suit == card2.suit and card1.suit == card3.suit:
-        if card1.rank == card2.rank - 1 and card2.rank == card3.rank - 1:
-            return True
-        elif card1.rank == card2.rank and card1.rank == card3.rank:
-            return True
-    return False
-
-# checking if it is a pair
-def isquetou(card1, card2):
-    if card1.suit == card2.suit and card1.rank == card2.rank:
-        return True
-    else:
-        return False
 
 # not for kanzhang now, 判断和牌暂时不包括坎张
 def isdazi(card1, card2):
@@ -198,7 +225,7 @@ def hand_processer(raw_hand):
 
 if __name__ == '__main__':
 
-    print(hand_checker(hand_processer('122334789m123s'), 4, 0))
+    print(hand_checker(hand_processer('11123456789999m'), 4, 1))
 
     test_hand = '122343m456s789p11z'
     # print(hand_processer(test_hand))
