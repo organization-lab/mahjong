@@ -141,15 +141,21 @@ def checker(raw_hand):
     for i in tempset:
         print(i)
 
+finished_hand = []
+
 def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
-    finished_hand = []
+    global finished_hand
     # every iteration: return finished hand
 
     # basic logic for 2/3 card
     if mianzi_needed == 1 and len(hand) == 3:
-        return Mianzi(hand[0], hand[1], hand[2])
+        if Mianzi(hand[0], hand[1], hand[2]).isvalid():
+            finished_hand.append(Mianzi(hand[0], hand[1], hand[2]))
+        return Mianzi(hand[0], hand[1], hand[2]).isvalid()
     if quetou_needed == 1 and len(hand) == 2:
-        return Quetou(hand[0], hand[1])
+        if Quetou(hand[0], hand[1]).isvalid():
+            finished_hand.append(Quetou(hand[0], hand[1]))
+        return Quetou(hand[0], hand[1]).isvalid()
     # iteration method
     i = 0
     j = i + 1
@@ -161,33 +167,39 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
             del iter_hand[j]
             del iter_hand[i]
             if hand_checker(iter_hand, mianzi_needed, quetou_needed - 1):
+                '''
                 print('OK', len(hand)) # test
                 for card in hand:
                     card.flag = True
                     print(card, end=',') # test card in hand
-                print() # test
+                print() # test'''
+                finished_hand.append(Quetou(hand[i], hand[j]))
                 return hand
             else: 
-                print('not check.', hand[i], hand[j])
+                # print('not check.', hand[i], hand[j])
                 j += 1
+                k = j + 1
         while k < len(hand):
             if Mianzi(hand[i], hand[j], hand[k]).isvalid():
-                print(len(hand),i,j,k, hand[i], hand[j], hand[k]) # test
                 iter_hand = hand[:] # slicing to create a copy (instead of '=', modifying the original list)
                 del iter_hand[k] # must delete from end to begin
                 del iter_hand[j]
                 del iter_hand[i]
                 if hand_checker(iter_hand, mianzi_needed - 1, quetou_needed):
-                    print('OK', len(hand)) # test
+                    '''
                     for card in hand:
                         card.flag = True
                         print(card, end=',') # test card in hand
-                    print() # test
+                    print() # test '''
+                    finished_hand.append(Mianzi(hand[i], hand[j], hand[k]))                   
                     return hand
+                else: 
+                    k += 1
             else: 
                 k += 1
         else:
             j += 1
+            k = j + 1
     return None
 
 
@@ -224,9 +236,14 @@ def hand_processer(raw_hand):
     return hand
 
 if __name__ == '__main__':
+    test_hand = ['122343m456s789p11z','122343m456s789p12z','122343m456s788p11z']
+    for i in test_hand:
+        finished_hand = []
+        hand_checker(hand_processer(i))
+        finished_hand.reverse()
+        for i in finished_hand:
+            print(i, end= ' ')
+        print()
 
-    print(hand_checker(hand_processer('11123456789999m'), 4, 1))
-
-    test_hand = '122343m456s789p11z'
     # print(hand_processer(test_hand))
     #checker(hand_processer(test_hand))
