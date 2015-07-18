@@ -75,6 +75,9 @@ print(quetou2)
 # end test
 '''
 
+MIANZI_MAX = 4
+QUETOU_MAX = 1
+
 def checker(raw_hand):
     # change raw hand to Card hand
     hand = []
@@ -114,6 +117,36 @@ def checker(raw_hand):
     for i in tempset:
         print(i)
 
+def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
+    # basic logic for 2/3 card
+    if mianzi_needed == 1 and len(hand) == 3:
+        return ismianzi(hand[0], hand[1], hand[2])
+    if quetou_needed == 1 and len(hand) == 2:
+        return isquetou(hand[0], hand[1])
+    # iteration method
+    i = 0
+    j = i + 1
+    k = j + 1
+    while j < len(hand):
+        while k < len(hand):
+            if ismianzi(hand[i], hand[j], hand[k]):
+                print(i,j,k, hand[i], hand[j], hand[k]) # test
+                iter_hand = hand
+                del iter_hand[k] # must delete from end to begin
+                del iter_hand[j]
+                del iter_hand[i]
+                for i in iter_hand:
+                    print(i)
+                if hand_checker(iter_hand, mianzi_needed - 1, quetou_needed):
+                    print('OK')
+                    for card in hand:
+                        card.flag = True
+                    return hand
+            else: 
+                k += 1
+        else:
+            j += 1
+    return None
 
 
 def ismianzi(card1, card2, card3):
@@ -159,11 +192,14 @@ def hand_processer(raw_hand):
         ranks = re.findall('\d', split)
         test = ranks.sort() # sort ranks, seems no need for sorting suit.
         for rank in ranks:
-            hand.append(rank + suit)
+            hand.append(Card(rank + suit))
 
     return hand
 
 if __name__ == '__main__':
+
+    print(hand_checker(hand_processer('122334789m123s'), 4, 0))
+
     test_hand = '122343m456s789p11z'
     # print(hand_processer(test_hand))
-    checker(hand_processer(test_hand))
+    #checker(hand_processer(test_hand))
