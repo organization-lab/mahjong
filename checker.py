@@ -2,7 +2,6 @@
 # Author: Frank-the-Obscure @ GitHub
 # a simple checker for mahjong: test if the cards makes a winning hand.
 
-
 import re
 from sys import argv
 
@@ -72,11 +71,10 @@ class Quetou(object):
         else:
             return False
 
-
 VALID_LENGTH_OF_HAND = 14
 MIANZI_MAX = 4
 QUETOU_MAX = 1
-finished_hand = []
+finished_hand = [] # use this list for storing finished hand after iteration
 
 def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
     global finished_hand
@@ -169,32 +167,48 @@ def sort_hand(card):
     rank, suit = card
     return suit + rank
 
+def mahjong_checker(raw_hand, output_notes=True):
+    """ check if hand is mahjong
 
-#print(hand_checker(hand_processer('11122m'),1,1))
+    i: raw hand
+    o: if the hand is mahjong or not. return True / False
+    output_notes is for printing info
+    """
+    global finished_hand 
+    finished_hand = []
 
+    if hand_processer(raw_hand):
+        if hand_checker(hand_processer(raw_hand)):
+            if output_notes:
+                print('Hand is mahjong. Wining hand is: ')
+
+                for i in format_finished_hand(finished_hand):
+                    print(i, end= ' ')
+                print()
+            return True
+        else:
+            if output_notes:
+                print('Hand is not mahjong.')
+            return False
+
+def format_finished_hand(finished_hand):
+    # reverse mahjong
+    # move quetou to last
+    finished_hand.reverse()
+    for i in finished_hand:
+        if type(i) == Quetou:
+            quetou = i
+            finished_hand.remove(i)
+    finished_hand.append(quetou)
+    return finished_hand
+
+def main():
+    try:
+        script, input_hand = argv
+    except ValueError:
+        input_hand = input('input hand: ')
+    mahjong_checker(input_hand)
 
 if __name__ == '__main__':
-    try:
-        script, test_hand = argv
-    except ValueError:
-        test_hand = input('input hand: ')
+    main()
 
-    finished_hand = []
-    if hand_processer(test_hand):
-        if hand_checker(hand_processer(test_hand)):
-            print('Hand is mahjong. Wining hand is: ')
-            finished_hand.reverse()
-
-            #move quetou to last
-            for i in finished_hand:
-                if type(i) == Quetou:
-                    quetou = i
-                    finished_hand.remove(i)
-            finished_hand.append(quetou)
-            for i in finished_hand:
-                print(i, end= ' ')
-            print()
-        else:
-            print('Hand is not mahjong.')
-    #print(hand_processer(test_hand))
-    #checker(hand_processer(test_hand))
