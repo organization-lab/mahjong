@@ -76,9 +76,12 @@ MIANZI_MAX = 4
 QUETOU_MAX = 1
 finished_hand = [] # use this list for storing finished hand after iteration
 
+
+
 def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
     global finished_hand
     # every iteration: return finished hand
+
 
     # basic logic for 2/3 card
     if mianzi_needed == 1 and len(hand) == 3:
@@ -133,6 +136,25 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
             k = j + 1
     return None
 
+def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
+
+    # non-standard form of mahjong
+    if mianzi_needed == MIANZI_MAX and quetou_needed == QUETOU_MAX:
+        # qiduizi (seven pairs)
+        i = 0
+        flag = True
+        while i < len(hand) - 1:
+            if not Quetou(hand[i], hand[i + 1]).isvalid():
+                print('not pair')
+                flag = False
+                break
+            print('mahjong: pair')
+            i += 2
+        if flag:
+            print('mahjong: qiduizi')
+            return hand
+
+
 def isdazi(card1, card2):
     # not for kanzhang now, 判断和牌暂时不包括坎张
     if card1.suit == card2.suit:
@@ -178,6 +200,11 @@ def mahjong_checker(raw_hand, output_notes=True):
     finished_hand = []
 
     if hand_processer(raw_hand):
+        if non_standard_form(hand_processer(raw_hand)):
+            if output_notes:
+                print('Hand is mahjong. Wining hand is: ')
+
+            return True
         if hand_checker(hand_processer(raw_hand)):
             if output_notes:
                 print('Hand is mahjong. Wining hand is: ')
