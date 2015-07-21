@@ -145,10 +145,8 @@ def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
         flag = True
         while i < len(hand) - 1:
             if not Quetou(hand[i], hand[i + 1]).isvalid():
-                print('not pair')
                 flag = False
                 break
-            print('mahjong: pair')
             i += 2
         if flag:
             print('mahjong: qiduizi')
