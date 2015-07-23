@@ -76,12 +76,12 @@ MIANZI_MAX = 4
 QUETOU_MAX = 1
 finished_hand = [] # use this list for storing finished hand after iteration
 
-
-
 def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
+    """iterator for standard form
+
+    """
     global finished_hand
     # every iteration: return finished hand
-
 
     # basic logic for 2/3 card
     if mianzi_needed == 1 and len(hand) == 3:
@@ -137,8 +137,10 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
     return None
 
 def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
-
     # non-standard form of mahjong
+    global finished_hand 
+    finished_hand = []
+
     if mianzi_needed == MIANZI_MAX and quetou_needed == QUETOU_MAX:
         # qiduizi (seven pairs)
         i = 0
@@ -147,11 +149,18 @@ def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
             if not Quetou(hand[i], hand[i + 1]).isvalid():
                 flag = False
                 break
+            finished_hand.append(Quetou(hand[i], hand[i + 1]))
             i += 2
         if flag:
             print('mahjong: qiduizi')
             return hand
 
+'''    # 十三幺: 静态匹配十三种和牌形即可.
+    yaojiu = hand_processer('19m19p19s1234567z','non-standard')
+    shisanyao = []
+    for card in yaojiu:
+        yaojiu_card = yaojiu
+        shisanyao.append(yaojiu_card.append(card))'''
 
 def isdazi(card1, card2):
     # not for kanzhang now, 判断和牌暂时不包括坎张
@@ -160,8 +169,12 @@ def isdazi(card1, card2):
             return True
     return False
 
-def hand_processer(raw_hand):
-    # process raw hand to single card list
+def hand_processer(raw_hand, length='std'):
+    """ process raw hand to single card list
+
+    i: raw hand
+    o: list of cards by Card class
+    """
     hand = []
     # 1. separate hand
     for split in re.findall('[1-9]+[mpsz]', raw_hand): #valid number 1-9, valid suit mpsz
@@ -172,7 +185,7 @@ def hand_processer(raw_hand):
     # 2. sort first by suit, second by rank
     hand.sort(key=sort_hand)
     # 3. check if hand length is valid
-    if len(hand) != VALID_LENGTH_OF_HAND:
+    if len(hand) != VALID_LENGTH_OF_HAND and length is 'std':
         print('hand is not valid, please check')
         return None
     # 4. output by Card class
@@ -198,10 +211,14 @@ def mahjong_checker(raw_hand, output_notes=True):
     finished_hand = []
 
     if hand_processer(raw_hand):
+        # non standard form
         if non_standard_form(hand_processer(raw_hand)):
             if output_notes:
-                print('Hand is mahjong. Wining hand is: ')
-
+                print('Hand is mahjong. Wining hand is: ') 
+                # may need abstract as a variable
+                for i in format_finished_hand(finished_hand, 'qiduizi'):
+                    print(i, end= ' ')
+                print()                
             return True
         if hand_checker(hand_processer(raw_hand)):
             if output_notes:
@@ -216,9 +233,12 @@ def mahjong_checker(raw_hand, output_notes=True):
                 print('Hand is not mahjong.')
             return False
 
-def format_finished_hand(finished_hand):
+def format_finished_hand(finished_hand, kind='standard'):
     # reverse mahjong
     # move quetou to last
+    if kind is not 'standard':
+        return finished_hand
+
     finished_hand.reverse()
     for i in finished_hand:
         if type(i) == Quetou:
@@ -228,6 +248,11 @@ def format_finished_hand(finished_hand):
     return finished_hand
 
 def main():
+    """main func.
+
+    i: argv or input later
+    o: is mahjong or not
+    """
     try:
         script, input_hand = argv
     except ValueError:

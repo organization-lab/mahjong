@@ -12,7 +12,8 @@ SUITS = ['m', 'p', 's', 'z']
 card_list = []
 for suit in SUITS:
     for rank in RANKS:
-        if suit is 'z': #special for 1-7z
+        if suit is 'z': 
+            #special for 1-7z
             if rank < 8:
                 card_list.append(str(rank) + suit)
         else:
