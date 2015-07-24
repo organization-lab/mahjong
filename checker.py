@@ -92,7 +92,7 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
         if Quetou(hand[0], hand[1]).isvalid():
             finished_hand.append(Quetou(hand[0], hand[1]))
         return Quetou(hand[0], hand[1]).isvalid()
-    # iteration method
+    # iteration method, ijk 是面子的三张牌, 需要在手牌中不断向后移动寻找构成面子的牌
     i = 0
     j = i + 1
     k = j + 1
@@ -142,9 +142,9 @@ def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
     finished_hand = []
 
     if mianzi_needed == MIANZI_MAX and quetou_needed == QUETOU_MAX:
-        # qiduizi (seven pairs)
+    # qiduizi (seven pairs)
         i = 0
-        flag = True
+        flag = True # 判断是否形成七对子
         while i < len(hand) - 1:
             if not Quetou(hand[i], hand[i + 1]).isvalid():
                 flag = False
@@ -152,15 +152,47 @@ def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
             finished_hand.append(Quetou(hand[i], hand[i + 1]))
             i += 2
         if flag:
-            print('mahjong: qiduizi')
-            return hand
+            # print('mahjong: qiduizi')
+            return True
 
-'''    # 十三幺: 静态匹配十三种和牌形即可.
-    yaojiu = hand_processer('19m19p19s1234567z','non-standard')
-    shisanyao = []
-    for card in yaojiu:
-        yaojiu_card = yaojiu
-        shisanyao.append(yaojiu_card.append(card))'''
+        # 十三幺: 静态匹配十三种和牌形即可.
+        yaojiu = hand_processer('19m19p19s1234567z','non-standard')
+        # 生成十三种和牌形
+        shisanyao = []
+        for card in yaojiu:
+            yaojiu_card = yaojiu.copy() # 又出现了拷贝列表指针的问题!
+            yaojiu_card.append(card) # 加上循环体
+            yaojiu_card.sort(key=sort_hand) # 排序:否则无法使用 issamehand()
+            shisanyao.append(yaojiu_card) 
+        # 循环判断是否一致
+        for shisanyao_set in shisanyao:
+            if issamehand(shisanyao_set, hand):
+                # print('shisanyao')
+                finished_hand = shisanyao_set
+                return True
+    else:
+        return False
+
+def issamehand(hand1, hand2):
+    """判断两手牌是否完全相同: 但需要先排好序再用
+    """
+    if len(hand1) != len(hand2):
+        return False
+    else:
+        i = 0
+        while i < len(hand1):
+            if not issamecard(hand1[i], hand2[i]):
+                return False
+            i += 1
+        return True
+
+def issamecard(card1, card2):
+    """判断两张牌是否相同
+    """
+    if card1.get_suit() == card2.get_suit() and card1.get_rank() == card2.get_rank():
+        return True
+    else:
+        return False
 
 def isdazi(card1, card2):
     # not for kanzhang now, 判断和牌暂时不包括坎张
@@ -182,8 +214,7 @@ def hand_processer(raw_hand, length='std'):
         ranks = re.findall('[1-9]', split)
         for rank in ranks:
             hand.append(rank + suit)
-    # 2. sort first by suit, second by rank
-    hand.sort(key=sort_hand)
+
     # 3. check if hand length is valid
     if len(hand) != VALID_LENGTH_OF_HAND and length is 'std':
         print('hand is not valid, please check')
@@ -193,12 +224,17 @@ def hand_processer(raw_hand, length='std'):
     for card in hand:
         hand_in_class.append(Card(card))
 
+    # 2. sort first by suit, second by rank
+    hand_in_class.sort(key=sort_hand)
+
     return hand_in_class
 
 def sort_hand(card):
-    # reverse hand name to sort by suit first
-    rank, suit = card
-    return suit + rank
+    """# reverse hand name to sort by suit first
+
+    i: card class
+    """
+    return card.suit, card.rank
 
 def mahjong_checker(raw_hand, output_notes=True):
     """ check if hand is mahjong
@@ -211,7 +247,7 @@ def mahjong_checker(raw_hand, output_notes=True):
     finished_hand = []
 
     if hand_processer(raw_hand):
-        # non standard form
+        # 1. non standard form
         if non_standard_form(hand_processer(raw_hand)):
             if output_notes:
                 print('Hand is mahjong. Wining hand is: ') 
@@ -220,6 +256,9 @@ def mahjong_checker(raw_hand, output_notes=True):
                     print(i, end= ' ')
                 print()                
             return True
+        else:
+            finished_hand = [] # re-init global
+        # 2. standard form
         if hand_checker(hand_processer(raw_hand)):
             if output_notes:
                 print('Hand is mahjong. Wining hand is: ')
@@ -253,6 +292,7 @@ def main():
     i: argv or input later
     o: is mahjong or not
     """
+
     try:
         script, input_hand = argv
     except ValueError:

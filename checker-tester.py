@@ -19,6 +19,17 @@ for suit in SUITS:
         else:
             card_list.append(str(rank) + suit)
 
+def test_cases():
+    cases_14 = ['11112345678999m', 
+                '123456789m123p55s', 
+                '11123m444567p789s',
+                '1133557799m1133p', 
+                '19m19p19s12345677z',
+                '19m19p19s1234567z']
+    for case in cases_14:
+        checker.mahjong_checker(case)
+
+
 def main():
     """return the one more card to make mahjong
 
@@ -30,9 +41,12 @@ def main():
         script, input_hand = argv
     except ValueError:
         input_hand = input('input hand of 13 card: ')
+    # issue: need to add a checker here.
     for card in card_list:
         if checker.mahjong_checker(input_hand + card, output_notes=False):
             print(card, end=' ')
-    
+    print()
+
 if __name__ == '__main__':
+    #test_cases()
     main()
