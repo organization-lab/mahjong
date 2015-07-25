@@ -48,13 +48,18 @@ def main():
         input_hand = input('input hand of 13 card: ')
     # issue: need to add a checker here.
     if checker.hand_processer(input_hand, length=13, check_input=True):
+        flag = False
         for card in card_list:
             if checker.mahjong_checker(input_hand + card, output_notes=False):
                 print(card, end=' ')
-        print()
+                flag = True
+        if flag:
+            print()
+        else:
+            print('Not tingpai.')
     else:
         print('Wrong input!')
 
 if __name__ == '__main__':
-    test_cases()
+    #test_cases()
     main()

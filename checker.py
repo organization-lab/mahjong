@@ -48,7 +48,8 @@ class Mianzi(object):
         if (self.card1.suit == self.card2.suit and 
             self.card1.suit == self.card3.suit):
             if (self.card1.rank == self.card2.rank - 1 and 
-                self.card2.rank == self.card3.rank - 1):
+                self.card2.rank == self.card3.rank - 1 and
+                self.card1.suit is not 'z'): # 顺子不能是字牌
                 return True
             elif (self.card1.rank == self.card2.rank and 
                   self.card1.rank == self.card3.rank):
