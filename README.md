@@ -1,15 +1,13 @@
 # 麻将 Mahjong
 
-关于麻将的工具集, 由Organization Lab 开发
+关于麻将的工具集, 由 Organization Lab 开发
 
 A toolbox for mahjong game, by Organization Lab
 
 Author: [Organization Lab @ GitHub](Lab)
 
 ## Release Note
-v 1.1: 标准型, 七对子和十三幺均已支持.
-
-七对子接受四归一
+v 1.1: 标准型, 七对子和十三幺均已支持. (七对子接受四归一)
 
 # How to use
 
@@ -38,6 +36,8 @@ the script will return if the hand is mahjong. If it is mahjong, the details wil
 ### 1.2 手牌格式 valid hand format
 
 允许简写`123456789m123p22s`, 也可每张牌单独输入, 如 `1m2m3m4m5m6m7m8m9m1p2p3p2s2s`
+
+m-万; p-筒; s-索/条; z-字(1234567z分别代表东南西北白发中)
 
 其它字母均暂不支持.
 
