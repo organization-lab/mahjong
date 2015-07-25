@@ -20,7 +20,10 @@ for suit in SUITS:
             card_list.append(str(rank) + suit)
 '''
 # alternative using list comprehensions
-card_list = [str(rank) + suit for suit in ['m', 'p', 's', 'z'] for rank in range(1, 10) if rank in range(1,8) or suit is not 'z']
+card_list = [str(rank) + suit 
+             for suit in ['m', 'p', 's', 'z'] 
+             for rank in range(1, 10) 
+             if rank in range(1,8) or suit is not 'z']
 
 def test_cases():
     cases_14 = ['11112345678999m', 
@@ -53,5 +56,5 @@ def main():
         print('Wrong input!')
 
 if __name__ == '__main__':
-    #test_cases()
+    test_cases()
     main()

@@ -45,10 +45,13 @@ class Mianzi(object):
             return 'not valid!'
 
     def isvalid(self):
-        if self.card1.suit == self.card2.suit and self.card1.suit == self.card3.suit:
-            if self.card1.rank == self.card2.rank - 1 and self.card2.rank == self.card3.rank - 1:
+        if (self.card1.suit == self.card2.suit and 
+            self.card1.suit == self.card3.suit):
+            if (self.card1.rank == self.card2.rank - 1 and 
+                self.card2.rank == self.card3.rank - 1):
                 return True
-            elif self.card1.rank == self.card2.rank and self.card1.rank == self.card3.rank:
+            elif (self.card1.rank == self.card2.rank and 
+                  self.card1.rank == self.card3.rank):
                 return True
         return False
 
@@ -66,12 +69,13 @@ class Quetou(object):
         else:
             return 'not valid!'
     def isvalid(self):
-        if self.card1.suit == self.card2.suit and self.card1.rank == self.card2.rank:
+        if (self.card1.suit == self.card2.suit and 
+            self.card1.rank == self.card2.rank):
             return True
         else:
             return False
 
-'''
+''' 写了初步的手牌类, 但暂不计划使用.
 class Hand(object):
     """docstring for Hand"""
     def __init__(self, raw_hand, length=VALID_LENGTH_OF_HAND, check_input=False):
@@ -114,6 +118,8 @@ finished_hand = [] # use this list for storing finished hand after iteration
 def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
     """iterator for standard form
 
+    标准型判断: 用ijk三个变量逐步上升迭代每一张牌, 每完成一部分就切掉迭代.
+    直至组成需要的面子和雀头数量
     """
     global finished_hand
     # every iteration: return finished hand
@@ -127,22 +133,21 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
         if Quetou(hand[0], hand[1]).isvalid():
             finished_hand.append(Quetou(hand[0], hand[1]))
         return Quetou(hand[0], hand[1]).isvalid()
-    # iteration method, ijk 是面子的三张牌, 需要在手牌中不断向后移动寻找构成面子的牌
+    # iteration method
+    # i j k 是面子的三张牌, 在手牌中不断向后移动寻找构成面子的牌
     i = 0
     j = i + 1
     k = j + 1
     while j < len(hand):
-        # 迭代: 因为只有一个雀头, 先尝试形成雀头; 如果不能, 则该张牌一定是面子的组成部分.
+        # 迭代: 因为只有一个雀头, 先尝试形成雀头; 
+        # 如果不能, 则该张牌一定是面子的组成部分.
         if quetou_needed and Quetou(hand[i], hand[j]).isvalid():
-            iter_hand = hand[:] # slicing to create a copy (instead of '=', modifying the original list)
+            iter_hand = hand[:] 
+            # slicing to create a copy 
+            # (instead of '=', which modifying the original list)
             del iter_hand[j]
             del iter_hand[i]
             if hand_checker(iter_hand, mianzi_needed, quetou_needed - 1):
-                '''# 剩下手牌可以make, finish
-                for card in hand:
-                    card.flag = True
-                    print(card, end=',') # test card in hand
-                print() # test'''
                 finished_hand.append(Quetou(hand[i], hand[j]))
                 return hand
             else: 
@@ -150,16 +155,11 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
                 # 剩下手牌不能make, 说明不应该把这两张牌当成雀头
         while k < len(hand):
             if Mianzi(hand[i], hand[j], hand[k]).isvalid():
-                iter_hand = hand[:] # slicing to create a copy (instead of '=', modifying the original list)
-                del iter_hand[k] # trick must delete from end to begin
+                iter_hand = hand[:] 
+                del iter_hand[k] # trick: must delete from end to begin
                 del iter_hand[j]
                 del iter_hand[i]
                 if hand_checker(iter_hand, mianzi_needed - 1, quetou_needed):
-                    '''
-                    for card in hand:
-                        card.flag = True
-                        print(card, end=',') # test card in hand
-                    print() # test '''
                     finished_hand.append(Mianzi(hand[i], hand[j], hand[k]))                   
                     return hand
                 else: 
@@ -167,11 +167,13 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
             else: 
                 k += 1
         else:
-            j += 1
+            j += 1 # j变化时, 要重置k的值
             k = j + 1
     return None
 
-def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
+def non_standard_form(hand, 
+                      mianzi_needed=MIANZI_MAX, 
+                      quetou_needed=QUETOU_MAX):
     # non-standard form of mahjong
     global finished_hand 
     finished_hand = []
@@ -191,8 +193,10 @@ def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
             return True
         # 十三幺: 静态匹配十三种和牌形即可.
         yaojiu = hand_processer('19m19p19s1234567z')
-        # 生成十三种和牌形, use list comprehensions & sorted, 两次注意到返回值的问题..分别用+和sorted创建新对象
-        shisanyao = [sorted(yaojiu + [card], key=sort_hand) for card in yaojiu]
+        # 生成十三种和牌形, use list comprehensions & sorted()
+        # 两次注意到返回值的问题..分别用+和sorted创建新对象
+        shisanyao = [sorted(yaojiu + [card], key=sort_hand) 
+                     for card in yaojiu]
         # 循环判断是否一致
         for shisanyao_hand in shisanyao:
             if issamehand(shisanyao_hand, hand):
@@ -225,13 +229,14 @@ def issamehand(hand1, hand2):
 def issamecard(card1, card2):
     """判断两张牌是否相同
     """
-    if card1.get_suit() == card2.get_suit() and card1.get_rank() == card2.get_rank():
+    if (card1.get_suit() == card2.get_suit() and 
+        card1.get_rank() == card2.get_rank()):
         return True
     else:
         return False
 
 def isdazi(card1, card2):
-    # not for kanzhang now, 判断和牌暂时不包括坎张
+    # not for kanzhang now, 判断和牌暂时不包括坎张; not using
     if card1.suit == card2.suit:
         if card1.rank == card2.rank or card1.rank == card2.rank - 1:
             return True
@@ -241,11 +246,13 @@ def hand_processer(raw_hand, length=VALID_LENGTH_OF_HAND, check_input=False):
     """ process raw hand to single card list
 
     i: raw hand, length of hand, check input or not
-    o: list of cards by Card class; return None when wrong input & check input is True
+    o: list of cards by Card class; 
+    return None when wrong input & check input is True
     """
     hand = []
     # 1. separate hand
-    for split in re.findall('[1-9]+[mpsz]', raw_hand): #valid number 1-9, valid suit mpsz
+    for split in re.findall('[1-9]+[mpsz]', raw_hand): 
+        #valid number 1-9, valid suit mpsz
         suit = re.search('[mpsz]', split).group()
         ranks = re.findall('[1-9]', split)
         for rank in ranks:
@@ -293,7 +300,6 @@ def mahjong_checker(raw_hand, output_notes=True):
         if hand_checker(hand_processer(raw_hand)):
             if output_notes:
                 print('Hand is mahjong. Wining hand is: ')
-
                 for i in format_finished_hand(finished_hand):
                     print(i, end= ' ')
                 print()
@@ -336,4 +342,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

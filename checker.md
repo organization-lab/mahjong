@@ -63,8 +63,13 @@ to do:
 1. 七对子: 和牌排序后, 必然两两相同, 循环迭代即可
 2. 十三幺: 先生成所有13种牌型, 依次比较.
 
-# api
+# api commit c87991
 
 `def hand_processer(raw_hand, length=VALID_LENGTH_OF_HAND, check_input=False)`
 
+返回用 Card 类表示的手牌(已排序)
+
 `def mahjong_checker(raw_hand, output_notes=True)`
+
+判断 raw_hand 是否为和牌型
+
