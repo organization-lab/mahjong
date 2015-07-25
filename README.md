@@ -45,8 +45,8 @@ m-万; p-筒; s-索/条; z-字(1234567z分别代表东南西北白发中)
 e.g. `123456789m123p22s`, `1m2m3m4m5m6m7m8m9m1p2p3p2s2s`
 
 ### 1.3 examples
-```
 
+```
 $ python checker.py 123456m456789p11s
 Hand is mahjong. Wining hand is:
 1m2m3m 4m5m6m 4p5p6p 7p8p9p 1s1s
@@ -66,6 +66,7 @@ $ python checker.py
 input hand: 123m456789p789s11z
 Hand is mahjong. Wining hand is:
 1m2m3m 4p5p6p 7p8p9p 7s8s9s 1z1z
+
 ```
 
 ## 2. 听牌判断器 Mahjong checker of unfinished form
