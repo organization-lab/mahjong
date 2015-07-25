@@ -5,10 +5,10 @@
 import checker
 from sys import argv
 
+'''
+# init card list
 RANKS = range(1, 10)
 SUITS = ['m', 'p', 's', 'z']
-
-# init card list
 card_list = []
 for suit in SUITS:
     for rank in RANKS:
@@ -18,6 +18,9 @@ for suit in SUITS:
                 card_list.append(str(rank) + suit)
         else:
             card_list.append(str(rank) + suit)
+'''
+# alternative using list comprehensions
+card_list = [str(rank) + suit for suit in ['m', 'p', 's', 'z'] for rank in range(1, 10) if rank in range(1,8) or suit is not 'z']
 
 def test_cases():
     cases_14 = ['11112345678999m', 
@@ -28,7 +31,6 @@ def test_cases():
                 '19m19p19s1234567z']
     for case in cases_14:
         checker.mahjong_checker(case)
-
 
 def main():
     """return the one more card to make mahjong
@@ -42,10 +44,13 @@ def main():
     except ValueError:
         input_hand = input('input hand of 13 card: ')
     # issue: need to add a checker here.
-    for card in card_list:
-        if checker.mahjong_checker(input_hand + card, output_notes=False):
-            print(card, end=' ')
-    print()
+    if checker.hand_processer(input_hand, length=13, check_input=True):
+        for card in card_list:
+            if checker.mahjong_checker(input_hand + card, output_notes=False):
+                print(card, end=' ')
+        print()
+    else:
+        print('Wrong input!')
 
 if __name__ == '__main__':
     #test_cases()

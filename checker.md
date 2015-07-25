@@ -58,3 +58,13 @@ to do:
   - 希望在后续向听数和番种计算时,OOP可起到帮助抽象的作用.
 3. i/o
   - 使用`try...except`同时在argv和input接受数据输入.
+
+## 非标准型的判断
+1. 七对子: 和牌排序后, 必然两两相同, 循环迭代即可
+2. 十三幺: 先生成所有13种牌型, 依次比较.
+
+# api
+
+`def hand_processer(raw_hand, length=VALID_LENGTH_OF_HAND, check_input=False)`
+
+`def mahjong_checker(raw_hand, output_notes=True)`

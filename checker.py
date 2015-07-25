@@ -71,6 +71,41 @@ class Quetou(object):
         else:
             return False
 
+'''
+class Hand(object):
+    """docstring for Hand"""
+    def __init__(self, raw_hand, length=VALID_LENGTH_OF_HAND, check_input=False):
+        # 1. separate hand
+        self.hand = []
+        for split in re.findall('[1-9]+[mpsz]', raw_hand): #valid number 1-9, valid suit mpsz
+            suit = re.search('[mpsz]', split).group()
+            ranks = re.findall('[1-9]', split)
+            for rank in ranks:
+                self.hand.append(rank + suit)
+        # 3. check if hand length is valid
+        if len(self.hand) != length and check_input:
+            #print('hand is not valid, please check')
+            self.hand = None
+        # 4. output by Card class
+        hand_in_class = [Card(card) for card in self.hand]
+        # 2. sort first by suit, second by rank
+        hand_in_class.sort(key = sort_hand)
+        self.hand = hand_in_class 
+
+    def __str__(self):
+        hand_list = []
+        for card in self.hand:
+            hand_list.append(str(card.get_rank()) + card.get_suit())
+        return ' '.join(hand_list)
+
+    def sort_hand(card):
+        """# reverse hand name to sort by suit first
+
+        i: card class
+        """
+        return card.get_suit(), card.get_rank()
+'''
+
 VALID_LENGTH_OF_HAND = 14
 MIANZI_MAX = 4
 QUETOU_MAX = 1
@@ -128,7 +163,7 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
                     finished_hand.append(Mianzi(hand[i], hand[j], hand[k]))                   
                     return hand
                 else: 
-                    k += 1
+                    k += 1 # 这张牌不能构成面子, 变量需要换成下一张牌继续尝试
             else: 
                 k += 1
         else:
@@ -142,7 +177,7 @@ def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
     finished_hand = []
 
     if mianzi_needed == MIANZI_MAX and quetou_needed == QUETOU_MAX:
-    # qiduizi (seven pairs)
+        # qiduizi (seven pairs)
         i = 0
         flag = True # 判断是否形成七对子
         while i < len(hand) - 1:
@@ -154,24 +189,25 @@ def non_standard_form(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
         if flag:
             # print('mahjong: qiduizi')
             return True
-
         # 十三幺: 静态匹配十三种和牌形即可.
-        yaojiu = hand_processer('19m19p19s1234567z','non-standard')
-        # 生成十三种和牌形
-        shisanyao = []
-        for card in yaojiu:
-            yaojiu_card = yaojiu.copy() # 又出现了拷贝列表指针的问题!
-            yaojiu_card.append(card) # 加上循环体
-            yaojiu_card.sort(key=sort_hand) # 排序:否则无法使用 issamehand()
-            shisanyao.append(yaojiu_card) 
+        yaojiu = hand_processer('19m19p19s1234567z')
+        # 生成十三种和牌形, use list comprehensions & sorted, 两次注意到返回值的问题..分别用+和sorted创建新对象
+        shisanyao = [sorted(yaojiu + [card], key=sort_hand) for card in yaojiu]
         # 循环判断是否一致
-        for shisanyao_set in shisanyao:
-            if issamehand(shisanyao_set, hand):
-                # print('shisanyao')
-                finished_hand = shisanyao_set
+        for shisanyao_hand in shisanyao:
+            if issamehand(shisanyao_hand, hand):
+                finished_hand = shisanyao_hand
                 return True
     else:
         return False
+
+def print_hand(hand):
+    """print hand for testing
+
+    """
+    for card in hand:
+        print(card, end=' ')
+    print()
 
 def issamehand(hand1, hand2):
     """判断两手牌是否完全相同: 但需要先排好序再用
@@ -201,11 +237,11 @@ def isdazi(card1, card2):
             return True
     return False
 
-def hand_processer(raw_hand, length='std'):
+def hand_processer(raw_hand, length=VALID_LENGTH_OF_HAND, check_input=False):
     """ process raw hand to single card list
 
-    i: raw hand
-    o: list of cards by Card class
+    i: raw hand, length of hand, check input or not
+    o: list of cards by Card class; return None when wrong input & check input is True
     """
     hand = []
     # 1. separate hand
@@ -214,19 +250,14 @@ def hand_processer(raw_hand, length='std'):
         ranks = re.findall('[1-9]', split)
         for rank in ranks:
             hand.append(rank + suit)
-
     # 3. check if hand length is valid
-    if len(hand) != VALID_LENGTH_OF_HAND and length is 'std':
-        print('hand is not valid, please check')
+    if len(hand) != length and check_input:
+        #print('hand is not valid, please check')
         return None
     # 4. output by Card class
-    hand_in_class = []
-    for card in hand:
-        hand_in_class.append(Card(card))
-
+    hand_in_class = [Card(card) for card in hand]
     # 2. sort first by suit, second by rank
     hand_in_class.sort(key=sort_hand)
-
     return hand_in_class
 
 def sort_hand(card):
@@ -234,7 +265,7 @@ def sort_hand(card):
 
     i: card class
     """
-    return card.suit, card.rank
+    return card.get_suit(), card.get_rank()
 
 def mahjong_checker(raw_hand, output_notes=True):
     """ check if hand is mahjong
@@ -246,7 +277,7 @@ def mahjong_checker(raw_hand, output_notes=True):
     global finished_hand 
     finished_hand = []
 
-    if hand_processer(raw_hand):
+    if hand_processer(raw_hand, check_input=True):
         # 1. non standard form
         if non_standard_form(hand_processer(raw_hand)):
             if output_notes:
@@ -271,20 +302,24 @@ def mahjong_checker(raw_hand, output_notes=True):
             if output_notes:
                 print('Hand is not mahjong.')
             return False
+    else:
+        print('Hand is not valid.')
+        return False
 
 def format_finished_hand(finished_hand, kind='standard'):
-    # reverse mahjong
-    # move quetou to last
     if kind is not 'standard':
+        # non-standard form 非标准型
         return finished_hand
-
-    finished_hand.reverse()
-    for i in finished_hand:
-        if type(i) == Quetou:
-            quetou = i
-            finished_hand.remove(i)
-    finished_hand.append(quetou)
-    return finished_hand
+    else:
+        # 1.reverse mahjong
+        finished_hand.reverse()
+        # 2.move quetou to last
+        for hand_set in finished_hand:
+            if type(hand_set) == Quetou:
+                quetou = hand_set
+                finished_hand.remove(hand_set)
+        finished_hand.append(quetou)
+        return finished_hand
 
 def main():
     """main func.
