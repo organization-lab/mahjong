@@ -46,20 +46,89 @@ def main():
         script, input_hand = argv
     except ValueError:
         input_hand = input('input hand of 13 card: ')
-    # issue: need to add a checker here.
-    if checker.hand_processer(input_hand, length=13, check_input=True):
+    istingpai(input_hand)
+
+def istingpai(hand, raw_hand=True, output_notes=True):
+    """判断13张牌是否听牌
+
+    i: 接受 raw_hand 和 Class hand
+
+    """
+    if raw_hand:
+        hand = checker.hand_processer(hand, length=13, check_input=True)
+    if hand:
         flag = False
         for card in card_list:
-            if checker.mahjong_checker(input_hand + card, output_notes=False):
-                print(card, end=' ')
+            hand_card = hand[:]
+            hand_card.append(checker.Card(card))
+            #for i in hand_card: # test
+            #    print(i, end='') #test
+            if checker.mahjong_checker(hand_card, output_notes=False, raw_hand=False):
+                if output_notes:
+                    print(card, end=' ')
                 flag = True
         if flag:
-            print()
+            if output_notes:
+                print()
+            return True
         else:
-            print('Not tingpai.')
+            if output_notes:
+                print('Not tingpai.')
+            return False
     else:
         print('Wrong input!')
+        return False
+
+def totingpai_14(hand, raw_hand=True):
+    """判断14张牌打掉哪张/哪些可以听牌
+
+    """
+
+    hand = checker.hand_processer(hand, raw_hand=raw_hand, length=14, check_input=True)
+    flag = False
+    for card in hand:
+        hand_card = hand[:]
+        hand_card.remove(card)
+        if istingpai(hand_card, raw_hand=False, output_notes=False):
+            #print('istingpai', card)
+            flag = True
+    if flag:
+        return True
+    else:
+        return False
+
+
+def isyixiangting(hand, raw_hand=True):
+    """判断13张牌是否是一向听
+
+    """
+    hand = checker.hand_processer(hand, raw_hand=raw_hand, length=13, check_input=True)
+
+    if istingpai(hand, raw_hand=False, output_notes=False): #已经听牌, 直接返回
+        print('is tingpai')
+        return False
+    else: # 还没听牌
+        for card in card_list:  
+            #print(card)
+            hand_card = hand[:]
+            hand_card.append(checker.Card(card))
+            if totingpai_14(hand_card, raw_hand=False):
+                print(card, end=' ')
+        print()
 
 if __name__ == '__main__':
-    #test_cases()
-    main()
+
+    #istingpai('1112345876999m')
+    #istingpai(checker.hand_processer('1112345876999m'),raw_hand=False)
+
+    #print(totingpai_14('11123456789999m'))
+    #print(totingpai_14('123456789m12345p'))
+    print(totingpai_14('1122556699m1223p'))
+    print(totingpai_14('1122556699m1233p')) # issue here
+
+
+    #isyixiangting('123456m1245789p')
+    #isyixiangting('123456m1256699p')
+    #isyixiangting('123456m1599p123s')
+    isyixiangting('1122556699m132p')
+    #main()

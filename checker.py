@@ -243,27 +243,32 @@ def isdazi(card1, card2):
             return True
     return False
 
-def hand_processer(raw_hand, length=VALID_LENGTH_OF_HAND, check_input=False):
+def hand_processer(hand, raw_hand=True, length=VALID_LENGTH_OF_HAND, check_input=False):
     """ process raw hand to single card list
 
     i: raw hand, length of hand, check input or not
     o: list of cards by Card class; 
     return None when wrong input & check input is True
     """
-    hand = []
+    
+    if not raw_hand:
+        hand.sort(key=sort_hand)
+        return hand
+    # or input raw_hand
+    processed_hand = []
     # 1. separate hand
-    for split in re.findall('[1-9]+[mpsz]', raw_hand): 
+    for split in re.findall('[1-9]+[mpsz]', hand): 
         #valid number 1-9, valid suit mpsz
         suit = re.search('[mpsz]', split).group()
         ranks = re.findall('[1-9]', split)
         for rank in ranks:
-            hand.append(rank + suit)
+            processed_hand.append(rank + suit)
     # 3. check if hand length is valid
-    if len(hand) != length and check_input:
+    if len(processed_hand) != length and check_input:
         #print('hand is not valid, please check')
         return None
     # 4. output by Card class
-    hand_in_class = [Card(card) for card in hand]
+    hand_in_class = [Card(card) for card in processed_hand]
     # 2. sort first by suit, second by rank
     hand_in_class.sort(key=sort_hand)
     return hand_in_class
@@ -275,19 +280,21 @@ def sort_hand(card):
     """
     return card.get_suit(), card.get_rank()
 
-def mahjong_checker(raw_hand, output_notes=True):
+def mahjong_checker(hand, output_notes=True, raw_hand=True):
     """ check if hand is mahjong
 
-    i: raw hand
+    i: hand or raw hand(整理成列表和简写均可接受)
     o: if the hand is mahjong or not. return True / False
     output_notes is for printing info
     """
     global finished_hand 
     finished_hand = []
 
-    if hand_processer(raw_hand, check_input=True):
+    if raw_hand: # process raw hand to hand if needed
+        hand = hand_processer(hand, check_input=True)
+    if hand:
         # 1. non standard form
-        if non_standard_form(hand_processer(raw_hand)):
+        if non_standard_form(hand):
             if output_notes:
                 print('Hand is mahjong. Wining hand is: ') 
                 # may need abstract as a variable
@@ -298,7 +305,7 @@ def mahjong_checker(raw_hand, output_notes=True):
         else:
             finished_hand = [] # re-init global
         # 2. standard form
-        if hand_checker(hand_processer(raw_hand)):
+        if hand_checker(hand):
             if output_notes:
                 print('Hand is mahjong. Wining hand is: ')
                 for i in format_finished_hand(finished_hand):
