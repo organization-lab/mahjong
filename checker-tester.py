@@ -9,18 +9,18 @@ from sys import argv
 # init card list
 RANKS = range(1, 10)
 SUITS = ['m', 'p', 's', 'z']
-card_list = []
+CARD_LIST = []
 for suit in SUITS:
     for rank in RANKS:
         if suit is 'z': 
             #special for 1-7z
             if rank < 8:
-                card_list.append(str(rank) + suit)
+                CARD_LIST.append(str(rank) + suit)
         else:
-            card_list.append(str(rank) + suit)
+            CARD_LIST.append(str(rank) + suit)
 '''
 # alternative using list comprehensions
-card_list = [str(rank) + suit 
+CARD_LIST = [str(rank) + suit 
              for suit in ['m', 'p', 's', 'z'] 
              for rank in range(1, 10) 
              if rank in range(1,8) or suit is not 'z']
@@ -58,11 +58,9 @@ def istingpai(hand, raw_hand=True, output_notes=True):
         hand = checker.hand_processer(hand, length=13, check_input=True)
     if hand:
         flag = False
-        for card in card_list:
-            hand_card = hand[:]
-            hand_card.append(checker.Card(card))
-            #for i in hand_card: # test
-            #    print(i, end='') #test
+        for card in CARD_LIST:
+            hand_card = hand + [checker.Card(card)]
+            hand_card = checker.hand_processer(hand_card, raw_hand=False) #sort again
             if checker.mahjong_checker(hand_card, output_notes=False, raw_hand=False):
                 if output_notes:
                     print(card, end=' ')
@@ -79,7 +77,7 @@ def istingpai(hand, raw_hand=True, output_notes=True):
         print('Wrong input!')
         return False
 
-def totingpai_14(hand, raw_hand=True):
+def totingpai_14(hand, raw_hand=True, output_notes=True):
     """判断14张牌打掉哪张/哪些可以听牌
 
     """
@@ -88,9 +86,10 @@ def totingpai_14(hand, raw_hand=True):
     flag = False
     for card in hand:
         hand_card = hand[:]
-        hand_card.remove(card)
+        hand_card.remove(card) 
         if istingpai(hand_card, raw_hand=False, output_notes=False):
-            #print('istingpai', card)
+            if output_notes:
+                print('istingpai', card)
             flag = True
     if flag:
         return True
@@ -108,7 +107,7 @@ def isyixiangting(hand, raw_hand=True):
         print('is tingpai')
         return False
     else: # 还没听牌
-        for card in card_list:  
+        for card in CARD_LIST:  
             #print(card)
             hand_card = hand[:]
             hand_card.append(checker.Card(card))
@@ -118,17 +117,18 @@ def isyixiangting(hand, raw_hand=True):
 
 if __name__ == '__main__':
 
-    #istingpai('1112345876999m')
+    #istingpai('1122556699m133p')
     #istingpai(checker.hand_processer('1112345876999m'),raw_hand=False)
 
-    #print(totingpai_14('11123456789999m'))
-    #print(totingpai_14('123456789m12345p'))
+    print(totingpai_14('1112345678999m1s'))
+    print(totingpai_14('123456789m12345p'))
     print(totingpai_14('1122556699m1223p'))
     print(totingpai_14('1122556699m1233p')) # issue here
-
+    print(totingpai_14('123456789m1278p5s'))
 
     #isyixiangting('123456m1245789p')
     #isyixiangting('123456m1256699p')
     #isyixiangting('123456m1599p123s')
-    isyixiangting('1122556699m132p')
+    #isyixiangting('1122556699m132p')
+    #isyixiangting('19m19p123456777z')
     #main()

@@ -195,7 +195,7 @@ def non_standard_form(hand,
         # 十三幺: 静态匹配十三种和牌形即可.
         yaojiu = hand_processer('19m19p19s1234567z')
         # 生成十三种和牌形, use list comprehensions & sorted()
-        # 两次注意到返回值的问题..分别用+和sorted创建新对象
+        # 两次注意到返回值的问题..分别用+[]和sorted创建新对象
         shisanyao = [sorted(yaojiu + [card], key=sort_hand) 
                      for card in yaojiu]
         # 循环判断是否一致
