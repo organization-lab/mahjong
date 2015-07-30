@@ -51,24 +51,25 @@ def main():
 def istingpai(hand, raw_hand=True, output_notes=True):
     """判断13张牌是否听牌
 
-    i: 接受 raw_hand 和 Class hand
-
+    i: 接受 raw_hand 和 Class hand, 通过 raw_hand 变量指示
     """
     if raw_hand:
         hand = checker.hand_processer(hand, length=13, check_input=True)
     if hand:
         flag = False
+        cardlist_of_tingpai = []
         for card in CARD_LIST:
             hand_card = hand + [checker.Card(card)]
             hand_card = checker.hand_processer(hand_card, raw_hand=False) #sort again
             if checker.mahjong_checker(hand_card, output_notes=False, raw_hand=False):
                 if output_notes:
                     print(card, end=' ')
+                cardlist_of_tingpai.append(card)
                 flag = True
         if flag:
             if output_notes:
                 print()
-            return True
+            return cardlist_of_tingpai
         else:
             if output_notes:
                 print('Not tingpai.')
@@ -81,21 +82,23 @@ def totingpai_14(hand, raw_hand=True, output_notes=True):
     """判断14张牌打掉哪张/哪些可以听牌
 
     """
-
     hand = checker.hand_processer(hand, raw_hand=raw_hand, length=14, check_input=True)
-    flag = False
+    flag = False # flag 用来标记是否已经听牌
     for card in hand:
         hand_card = hand[:]
         hand_card.remove(card) 
+        tingpai_list = istingpai(hand_card, raw_hand=False, output_notes=False)
         if istingpai(hand_card, raw_hand=False, output_notes=False):
             if output_notes:
-                print('istingpai', card)
+                print('打 {} 听'.format(card), end=' ')
+                for i in tingpai_list:
+                    print(i, end=' ')
+                print()
             flag = True
     if flag:
         return True
     else:
         return False
-
 
 def isyixiangting(hand, raw_hand=True):
     """判断13张牌是否是一向听
@@ -108,10 +111,10 @@ def isyixiangting(hand, raw_hand=True):
         return False
     else: # 还没听牌
         for card in CARD_LIST:  
-            #print(card)
+            print('.') # test speed
             hand_card = hand[:]
             hand_card.append(checker.Card(card))
-            if totingpai_14(hand_card, raw_hand=False):
+            if totingpai_14(hand_card, raw_hand=False, output_notes=False):
                 print(card, end=' ')
         print()
 
@@ -120,13 +123,16 @@ if __name__ == '__main__':
     #istingpai('1122556699m133p')
     #istingpai(checker.hand_processer('1112345876999m'),raw_hand=False)
 
+    """
     print(totingpai_14('1112345678999m1s'))
     print(totingpai_14('123456789m12345p'))
     print(totingpai_14('1122556699m1223p'))
-    print(totingpai_14('1122556699m1233p')) # issue here
+    print(totingpai_14('1122556699m1233p')) 
     print(totingpai_14('123456789m1278p5s'))
+    print(totingpai_14('11123456789999m'))
+    """
 
-    #isyixiangting('123456m1245789p')
+    isyixiangting('123456m1245789p')
     #isyixiangting('123456m1256699p')
     #isyixiangting('123456m1599p123s')
     #isyixiangting('1122556699m132p')
