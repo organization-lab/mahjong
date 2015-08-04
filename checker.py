@@ -3,6 +3,7 @@
 # a simple checker for mahjong: test if the cards makes a winning hand.
 
 import re
+import random
 from sys import argv
 
 class Card:
@@ -110,6 +111,20 @@ class Hand(object):
         """
         return card.get_suit(), card.get_rank()
 '''
+
+CARD_LIST = [str(rank) + suit 
+             for suit in ['m', 'p', 's', 'z'] 
+             for rank in range(1, 10) 
+             if rank in range(1,8) or suit is not 'z']
+
+def init_paishan():
+    """ 生成136张牌山
+    i: nothing
+    o: a list of 136 random card
+    """
+    paishan_list = CARD_LIST * 4
+    random.shuffle(paishan_list)
+    return paishan_list
 
 VALID_LENGTH_OF_HAND = 14
 MIANZI_MAX = 4
@@ -280,7 +295,7 @@ def sort_hand(card):
     """
     return card.get_suit(), card.get_rank()
 
-def mahjong_checker(hand, output_notes=True, raw_hand=True):
+def mahjong_checker(hand, output_notes=False, raw_hand=False):
     """ check if hand is mahjong
 
     i: hand or raw hand(整理成列表和简写均可接受)
@@ -321,6 +336,7 @@ def mahjong_checker(hand, output_notes=True, raw_hand=True):
         return False
 
 def format_finished_hand(finished_hand, kind='standard'):
+    # 整理和牌型结构
     if kind is not 'standard':
         # non-standard form 非标准型
         return finished_hand

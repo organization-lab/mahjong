@@ -25,6 +25,17 @@ CARD_LIST = [str(rank) + suit
              for rank in range(1, 10) 
              if rank in range(1,8) or suit is not 'z']
 
+def init_paishan():
+    """ 生成136张牌山
+    i: nothing
+    o: a list of 136 random card
+    """
+    CARD_LIST = [str(rank) + suit 
+             for suit in ['m', 'p', 's', 'z'] 
+             for rank in range(1, 10) 
+             if rank in range(1,8) or suit is not 'z']
+    pass
+
 def test_cases():
     cases_14 = ['11112345678999m', 
                 '123456789m123p55s', 
@@ -48,7 +59,7 @@ def main():
         input_hand = input('input hand of 13 card: ')
     istingpai(input_hand)
 
-def istingpai(hand, raw_hand=True, output_notes=True):
+def istingpai(hand, raw_hand=False, output_notes=False):
     """判断13张牌是否听牌
 
     i: 接受 raw_hand 和 Class hand, 通过 raw_hand 变量指示
@@ -78,17 +89,19 @@ def istingpai(hand, raw_hand=True, output_notes=True):
         print('Wrong input!')
         return False
 
-def totingpai_14(hand, raw_hand=True, output_notes=True):
+def totingpai_14(hand, raw_hand=False, output_notes=False):
     """判断14张牌打掉哪张/哪些可以听牌
 
     """
     hand = checker.hand_processer(hand, raw_hand=raw_hand, length=14, check_input=True)
     flag = False # flag 用来标记是否已经听牌
+    totingpai_list = []
     for card in hand:
         hand_card = hand[:]
         hand_card.remove(card) 
         tingpai_list = istingpai(hand_card, raw_hand=False, output_notes=False)
         if istingpai(hand_card, raw_hand=False, output_notes=False):
+            totingpai_list.append(card)
             if output_notes:
                 print('打 {} 听'.format(card), end=' ')
                 for i in tingpai_list:
@@ -96,7 +109,7 @@ def totingpai_14(hand, raw_hand=True, output_notes=True):
                 print()
             flag = True
     if flag:
-        return True
+        return totingpai_list # 返回能听牌的列表
     else:
         return False
 
@@ -110,8 +123,7 @@ def isyixiangting(hand, raw_hand=True):
         print('is tingpai')
         return False
     else: # 还没听牌
-        for card in CARD_LIST:  
-            print('.') # test speed
+        for card in CARD_LIST: 
             hand_card = hand[:]
             hand_card.append(checker.Card(card))
             if totingpai_14(hand_card, raw_hand=False, output_notes=False):
