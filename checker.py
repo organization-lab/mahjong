@@ -4,7 +4,6 @@
 
 import re
 import random
-from sys import argv
 
 class Card:
     """docstring for card"""
@@ -351,13 +350,69 @@ def format_finished_hand(finished_hand, kind='standard'):
         finished_hand.append(quetou)
         return finished_hand
 
+def xiangtingshu(hand_todo, hand_setted=[]):
+    """判断向听数
+    i: hand setted 使用分类
+    p: 每张牌迭代
+    o: 向听数
+    """
+    card_to_set = hand_todo[0]
+    print(card_to_set) #
+    if len(hand_setted) == 0:
+        hand_setted.append([card_to_set])
+        xiangtingshu(hand_todo, hand_setted + [card_to_set])
+    for setted in hand_setted:
+        # 如果是已完成面子, 略过
+        if type_of_cards(setted) is "mianzi": 
+            print('ismianzi')
+            pass
+        elif type_of_cards(setted) is "dazi" \
+            and type_of_cards(setted + [card_to_set]) is "mianzi":
+            # 如果是搭子, 并可与新牌组成面子
+            print('make mianzi')
+            hand_setted.remove(setted)
+            hand_setted.append(setted + [card_to_set])
+            pass
+        elif type_of_cards(hand_setted) is "single" \
+            and type_of_cards(setted + [card_to_set]) is "dazi":
+            # 如果是孤张, 并可与新牌组成搭子
+            print('make dazi')
+            hand_setted.remove(setted)
+            hand_setted.append(setted + [card_to_set])
+            pass
+    hand_setted.append([card_to_set])
+    del hand_todo[0]
+    if hand_todo:
+        xiangtingshu(hand_todo, hand_setted + [card_to_set])
+    else:
+        # output, print for test
+        for setted in hand_setted:
+            print(setted, 'hello')
+
+def type_of_cards(list_of_card):
+    """判断手牌组类型
+    """
+    print(list_of_card)
+    if len(list_of_card) == 0:
+        return None
+    elif len(list_of_card) == 1:
+        return "single"
+    elif len(list_of_card) == 2 and \
+         isdazi(list_of_card[0], list_of_card[1]):
+        return "dazi"
+    elif len(list_of_card) == 3 and \
+         Mianzi(list_of_card[0], list_of_card[1], list_of_card[2]).isvalid():
+        return "mianzi"
+    else: 
+        return None
+
 def main():
     """main func.
 
     i: argv or input later
     o: is mahjong or not
     """
-
+    from sys import argv
     try:
         script, input_hand = argv
     except ValueError:
