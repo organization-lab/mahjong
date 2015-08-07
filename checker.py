@@ -253,7 +253,7 @@ def issamecard(card1, card2):
 def isdazi(card1, card2):
     # not for kanzhang now, 判断和牌暂时不包括坎张; not using
     if card1.suit == card2.suit:
-        if card1.rank == card2.rank or card1.rank == card2.rank - 1:
+        if card1.rank == card2.rank or card1.rank == card2.rank - 1 or card1.rank == card2.rank - 2:
             return True
     return False
 
@@ -350,49 +350,67 @@ def format_finished_hand(finished_hand, kind='standard'):
         finished_hand.append(quetou)
         return finished_hand
 
-def xiangtingshu(hand_todo, hand_setted=[]):
+def xiangtingshu(hand_todo, hand_set=[], list_of_parse=[]):
     """判断向听数
-    i: hand setted 使用分类
+    i: hand set 使用分类
     p: 每张牌迭代
     o: 向听数
     """
-    card_to_set = hand_todo[0]
-    print(card_to_set) #
-    if len(hand_setted) == 0:
-        hand_setted.append([card_to_set])
-        xiangtingshu(hand_todo, hand_setted + [card_to_set])
-    for setted in hand_setted:
+    '''
+    print('hand_todo', end = ' ')
+    for i in hand_todo:
+        print(i, end = '')
+    print()
+    print('hand_set', end = ' ')
+    for i in hand_set:
+        for ii in i:
+            print(ii, end = ' ')
+        print(',', end = '')
+    print()'''
+    global list_xiangtingshu
+    if len(hand_todo) == 0: #finished
+        '''print("finished", end= ':')
+        for group in hand_set:
+            for card in group:
+                print(card, end = "")
+            print(',', end = "")
+        print()'''
+        list_xiangtingshu.append((len(hand_set),hand_set))
+        return list_xiangtingshu
+    card_to_set = hand_todo[0] # 需要处理的牌
+    #print('card to process', card_to_set) #
+
+    for group in hand_set:
+        #print(setted, card_to_set,'list, card') #调试信息
         # 如果是已完成面子, 略过
-        if type_of_cards(setted) is "mianzi": 
-            print('ismianzi')
+        group_type = type_of_cards(group)
+        plus_card_type = type_of_cards(group + [card_to_set])
+        #print(type_of_cards(setted), hand_todo[0])# 
+
+        if group_type is "mianzi": 
+            # 如果已是面子, 无法添加, 则与孤张处理一样
             pass
-        elif type_of_cards(setted) is "dazi" \
-            and type_of_cards(setted + [card_to_set]) is "mianzi":
+        elif type_of_cards(group) is "dazi" and plus_card_type is "mianzi":
             # 如果是搭子, 并可与新牌组成面子
-            print('make mianzi')
-            hand_setted.remove(setted)
-            hand_setted.append(setted + [card_to_set])
-            pass
-        elif type_of_cards(hand_setted) is "single" \
-            and type_of_cards(setted + [card_to_set]) is "dazi":
+            #print('make mianzi')
+            hand_set_new = hand_set[:]
+            hand_set_new.remove(group)
+            hand_set_new.append(group + [card_to_set])
+            xiangtingshu(hand_todo[1:], hand_set_new)
+        elif group_type is "single" and plus_card_type is "dazi":
             # 如果是孤张, 并可与新牌组成搭子
-            print('make dazi')
-            hand_setted.remove(setted)
-            hand_setted.append(setted + [card_to_set])
-            pass
-    hand_setted.append([card_to_set])
-    del hand_todo[0]
-    if hand_todo:
-        xiangtingshu(hand_todo, hand_setted + [card_to_set])
-    else:
-        # output, print for test
-        for setted in hand_setted:
-            print(setted, 'hello')
+            #print('make dazi')
+            hand_set_new = hand_set[:]
+            hand_set_new.remove(group)
+            hand_set_new.append(group + [card_to_set])
+            xiangtingshu(hand_todo[1:], hand_set_new)
+    #print('end for')
+    xiangtingshu(hand_todo[1:], hand_set + [[card_to_set]])# 孤张处理
 
 def type_of_cards(list_of_card):
     """判断手牌组类型
     """
-    print(list_of_card)
+    #print('list',list_of_card)
     if len(list_of_card) == 0:
         return None
     elif len(list_of_card) == 1:
@@ -420,4 +438,18 @@ def main():
     mahjong_checker(input_hand)
 
 if __name__ == '__main__':
-    main()
+    #main()
+    test_hand = hand_processer('55789m1456p569s44z')
+    list_xiangtingshu = []
+    xiangtingshu(test_hand)
+    lowest_num = len(test_hand)
+    for num, hand in list_xiangtingshu: # find lowest number
+        if num < lowest_num:
+            lowest_num = num
+    for num, hand in list_xiangtingshu: # 
+        if num == lowest_num:
+            for group in hand:
+                for card in group:
+                    print(card, end = "")
+                print(',', end = " ")
+            print(num)
