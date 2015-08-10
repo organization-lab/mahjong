@@ -313,6 +313,12 @@ class Hand_in_group(object):
         return 8 - 2 * num_mianzi - num_quetou - num_dazi
 
     def youxiaopai(self):
+        """输出有效牌
+
+        i: 牌组
+        p: 按照面子-雀头-搭子-孤张排序并统计数量后, 即可按顺序处理
+        o: 有效牌列表(Card list)
+        """
         num_mianzi = 0
         num_quetou = 0
         num_dazi = 0
@@ -352,14 +358,11 @@ class Hand_in_group(object):
         return list_youxiaopai
 
 def is_samegroup(group1, group2):
-    """判断两个牌组是否一样
-
-    """
+    #判断两个牌组是否相同, 使用 str() 比较字符串
     return str(group1) == str(group2)
 
 def is_samehandingroup(hand_in_group1, hand_in_group2):
-    # todo: 目前暂时是列表, 要改写成类的方法
-    return str(hand_in_group1) == str(hand_in_group2) #todo: while else?似乎有这个语法
+    return str(hand_in_group1) == str(hand_in_group2) 
 
 def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
     """iterator for standard form
@@ -622,7 +625,7 @@ def hand_to_group(hand_todo, hand_set=Hand_in_group()):
     hand_to_group(hand_todo[1:], hand_set_new)# 孤张处理
 
 def cal_xiangtingshu(hand, raw_hand=True, output_notes=False):
-    """判断向听数的封装
+    """计算向听数的封装
 
     i: hand set 使用分类 hand_todo: Card的列表, 最好是13张
     p: 先用hand_to_group分类; 再分别计算向听数
@@ -665,7 +668,7 @@ def cal_xiangtingshu(hand, raw_hand=True, output_notes=False):
 def xiangtingshu_output(hand, raw_hand=True):
     hand = hand_processer(hand, raw_hand)
     # todo: 只判断 unique card, 在重复型将可明显减少判断时间.
-    xiangtingshu_lowest = 9
+    xiangtingshu_lowest = 8
     best_cards = []
     # 统计出最小向听数
     for card in hand: 
@@ -698,6 +701,7 @@ def main():
         script, input_hand = argv
     except ValueError:
         input_hand = input('input hand: ')
+
     xiangtingshu_output(input_hand)
 
 if __name__ == '__main__':
