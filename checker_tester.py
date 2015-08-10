@@ -2,7 +2,7 @@
 # Author: Frank-the-Obscure @ GitHub
 # a simple tester of checker for mahjong
 
-import checker
+import mahjong
 from sys import argv
 
 '''
