@@ -3,8 +3,11 @@
 # mahjong AI
 
 import mahjong
+import checker
+import checker_tester
 
 def heqie(hand, output_notes=False):
+    # todo: 只判断 unique card, 在重复型将可明显减少判断时间.
     """何切函数
 
     i: 14 card
@@ -39,12 +42,35 @@ def heqie(hand, output_notes=False):
         card0 = card
     card, xiangtingshu, num_youxiaopai, list_youxiaopai = best_card
     if output_notes: #输出调试信息
+        mahjong.print_hand(hand) # 输出手牌内容
         youxiaopai = ''
         for i in list_youxiaopai:
             youxiaopai += str(i)
         print('打{}, 向听数{}, 有效牌{}, {}种{}张'.format(card, xiangtingshu, youxiaopai, len(list_youxiaopai), num_youxiaopai))
 
     return card, xiangtingshu # 返回切出的牌及向听数
+
+def heqie_old(hand):
+    """何切函数(已弃用)
+
+    i: 手牌14张 in class
+    o: 打某张 or 宣布和牌
+    """
+    if checker.mahjong_checker(hand, output_notes=False, raw_hand=False): 
+        # 已经和牌
+        print("和牌")
+        return False
+    else:
+        # 需要打某张牌
+        # 先判断是否已经听牌了
+        tingpai = checker_tester.totingpai_14(hand)
+        if tingpai:
+            hand.remove(tingpai.pop())
+        else:
+            # 没听牌, 打左数第一张 =.=
+            print(hand[0])
+            del hand[0]
+        return hand
 
 def heqie_tester():
     """发牌器, 测试何切函数
@@ -82,7 +108,10 @@ def heqie_tester():
         print('牌山没牌了.')
 
 def main():
-    heqie_tester()
+    from sys import argv
+    script, hand = argv
+    heqie(checker.hand_processer(hand),output_notes=True)
 
 if __name__ == '__main__':
-    main()
+    #main()
+    heqie_tester()

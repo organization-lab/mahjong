@@ -4,10 +4,11 @@
 
 A toolbox for mahjong game, by Organization Lab
 
+1. 和牌判断器 Mahjong checker `checker.py`
+2. 向听数计算器 Xiangtingshu calculator `mahjong.py`
+
 Author: [Organization Lab @ GitHub](Lab)
 
-## Release Note
-v 1.1: 标准型, 七对子和十三幺均已支持. (七对子接受四归一)
 
 # How to use
 
@@ -17,7 +18,8 @@ Clone or Download repo to local. Then run script with Python 3.4.3
 
 Tested in OS X and Windows. (Python 2.7 should also works, but not tested)
 
-## 1. 和牌判断器 Mahjong checker 
+
+## 1. 和牌判断器 Mahjong checker `checker.py`
 
 ### 1.1 脚本运行方式 
 
@@ -69,47 +71,37 @@ Hand is mahjong. Wining hand is:
 
 ```
 
-## 2. 听牌判断器 Mahjong checker of unfinished form
-与上述和牌判断器类似, 输入 **13** 张手牌(手牌格式相同).
 
-脚本将给出手牌所听的牌
+## 2. 向听数计算器 Xiangtingshu calculator `mahjong.py`
+### 2.1 运行方式
 
-注: 已有四张, 形式上听第五张算作听牌.
+输入 14 张手牌(手牌格式见下)作为参数, 或在提示后输入参数
 
-`python checker-tester.py hand`
+`python mahjong.py hand`
 
-e.g. `$ python checker-tester.py 1112345678999m`
+e.g. `$ python mahjong.py 123456789m123p22s`
 
-`python checker-tester.py`, then input hand
+`python mahjong.py`, then input hand
 
-```
-$ python checker-tester.py 13456789m111s44z
-2m
+脚本会计算手牌的最小向听数, 并给出各种打法的有效牌
 
-$ python checker-tester.py 23456789m111s44z
-1m 4m 7m
+the script will return the xiangtingshu(向听数) of hand.
 
-$ python checker-tester.py 123456789m111s4z
-4z
+### 2.2 手牌格式 valid hand format
 
-$ python checker-tester.py 123456789m11s44z
-1s 4z
+允许简写`123456789m123p22s`, 也可每张牌单独输入, 如 `1m2m3m4m5m6m7m8m9m1p2p3p2s2s`
 
-$ python checker-tester.py 19m19p19s1234567z
-1m 9m 1p 9p 1s 9s 1z 2z 3z 4z 5z 6z 7z
+m-万; p-筒; s-索/条; z-字(1234567z分别代表东南西北白发中)
 
-$ python checker-tester.py 1112345678999m
-1m 2m 3m 4m 5m 6m 7m 8m 9m
+其它字母均暂不支持.
 
-$ python checker-tester.py 123456789m11s46z
-Not tingpai.
-
-$ python checker-tester.py 123456789m111s46z
-Wrong input!
-
-$ python checker-tester.py 123456789m1111z
-1z
+### 2.3 examples
 
 ```
-
-
+$ python mahjong.py 7m8m9m4p5p6p1s1s1s6s7s8s9s4s
+手牌: 7m8m9m4p5p6p1s1s1s4s6s7s8s9s
+打1s, 向听数0, 有效牌5s, 1种4张
+打4s, 向听数0, 有效牌6s9s, 2种6张
+打6s, 向听数0, 有效牌4s, 1种3张
+打9s, 向听数0, 有效牌4s, 1种3张
+```

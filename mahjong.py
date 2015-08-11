@@ -30,114 +30,6 @@ class Card:
     def set_flag(self, flag):
         self.flag = flag
 
-MIANZI = ['shunzi', 'kezi']
-QUETOU = ['duizi']
-DAZI = ['duizi', 'bianzhang', 'kanzhang', 'liangmian']
-GUZHANG = ['guzhang'] # init respones
-
-CARD_LIST = [str(rank) + suit 
-             for suit in ['m', 'p', 's', 'z'] 
-             for rank in range(1, 10) 
-             if rank in range(1,8) or suit is not 'z']
-
-def init_paishan():
-    """ 生成136张牌山
-    i: nothing
-    o: a list of 136 random card
-    """
-    paishan_list = CARD_LIST * 4
-    random.shuffle(paishan_list)
-    return paishan_list
-
-VALID_LENGTH_OF_HAND = 14
-MIANZI_MAX = 4
-QUETOU_MAX = 1
-XIANGTINGSHU_MAX = 8
-finished_hand = [] # use this list for storing finished hand after iteration
-
-class Mianzi(object):
-    """docstring for Mianzi"""
-    def __init__(self, card1, card2, card3):
-        super(Mianzi, self).__init__()
-
-        self.card1 = card1
-        self.card2 = card2
-        self.card3 = card3
-        self.index = card1.rank
-
-    def __str__(self):
-        if self.isvalid():
-            return str(self.card1) + str(self.card2) + str(self.card3) 
-        else:
-            return 'not valid!'
-
-    def isvalid(self):
-        if (self.card1.suit == self.card2.suit and 
-            self.card1.suit == self.card3.suit):
-            if (self.card1.rank == self.card2.rank - 1 and 
-                self.card2.rank == self.card3.rank - 1 and
-                self.card1.suit is not 'z'): # 顺子不能是字牌
-                return True
-            elif (self.card1.rank == self.card2.rank and 
-                  self.card1.rank == self.card3.rank):
-                return True
-        return False
-
-class Quetou(object):
-    """docstring for Quetou"""
-    def __init__(self, card1, card2):
-        super(Quetou, self).__init__()
-        
-        self.card1 = card1
-        self.card2 = card2
-        self.index = card1.rank
-    def __str__(self):
-        if self.isvalid():
-            return str(self.card1) + str(self.card2) 
-        else:
-            return 'not valid!'
-    def isvalid(self):
-        if (self.card1.suit == self.card2.suit and 
-            self.card1.rank == self.card2.rank):
-            return True
-        else:
-            return False
-
-''' 写了初步的手牌类, 但暂不计划使用.
-class Hand(object):
-    """docstring for Hand"""
-    def __init__(self, raw_hand, length=VALID_LENGTH_OF_HAND, check_input=False):
-        # 1. separate hand
-        self.hand = []
-        for split in re.findall('[1-9]+[mpsz]', raw_hand): #valid number 1-9, valid suit mpsz
-            suit = re.search('[mpsz]', split).group()
-            ranks = re.findall('[1-9]', split)
-            for rank in ranks:
-                self.hand.append(rank + suit)
-        # 3. check if hand length is valid
-        if len(self.hand) != length and check_input:
-            #print('hand is not valid, please check')
-            self.hand = None
-        # 4. output by Card class
-        hand_in_class = [Card(card) for card in self.hand]
-        # 2. sort first by suit, second by rank
-        hand_in_class.sort(key = sort_hand)
-        self.hand = hand_in_class 
-
-    def __str__(self):
-        hand_list = []
-        for card in self.hand:
-            hand_list.append(str(card.get_rank()) + card.get_suit())
-        return ' '.join(hand_list)
-
-    def sort_hand(card):
-        """# reverse hand name to sort by suit first
-
-        i: card class
-        """
-        return card.get_suit(), card.get_rank()
-'''
-
 class Group(object):
     """docstring for Group
     手牌组: 面子 雀头 搭子 复合搭, etc.
@@ -317,7 +209,7 @@ class Hand_in_group(object):
 
         i: 牌组
         p: 按照面子-雀头-搭子-孤张排序并统计数量后, 即可按顺序处理
-        o: 有效牌列表(Card list)
+        o: 有效牌列表(Card class list)
         """
         num_mianzi = 0
         num_quetou = 0
@@ -357,102 +249,42 @@ class Hand_in_group(object):
                     list_youxiaopai += group.youxiaopai()
         return list_youxiaopai
 
+MIANZI = ['shunzi', 'kezi']
+QUETOU = ['duizi']
+DAZI = ['duizi', 'bianzhang', 'kanzhang', 'liangmian']
+GUZHANG = ['guzhang'] # init respones
+
+CARD_LIST = [str(rank) + suit 
+             for suit in ['m', 'p', 's', 'z'] 
+             for rank in range(1, 10) 
+             if rank in range(1,8) or suit is not 'z']
+
+CARD_LEFT = {card:4 for card in CARD_LIST} # 存储剩余牌量的字典, 通过 used_card 删除
+
+VALID_LENGTH_OF_HAND = 14
+MIANZI_MAX = 4
+QUETOU_MAX = 1
+XIANGTINGSHU_MAX = 8
+finished_hand = [] # use this list for storing finished hand after iteration
+
+def init_paishan():
+    """ 生成136张牌山
+    i: nothing
+    o: a list of 136 random card
+    """
+    paishan_list = CARD_LIST * 4
+    random.shuffle(paishan_list)
+    return paishan_list
+
+def used_card(card): # 从字典中去掉用过的牌, card in Card class
+    CARD_LEFT[str(card)] -= 1
+
 def is_samegroup(group1, group2):
     #判断两个牌组是否相同, 使用 str() 比较字符串
     return str(group1) == str(group2)
 
 def is_samehandingroup(hand_in_group1, hand_in_group2):
     return str(hand_in_group1) == str(hand_in_group2) 
-
-def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
-    """iterator for standard form
-
-    标准型判断: 用ijk三个变量逐步上升迭代每一张牌, 每完成一部分就切掉迭代.
-    直至组成需要的面子和雀头数量
-    """
-    global finished_hand
-    # every iteration: return finished hand
-
-    # basic logic for 2/3 card
-    if mianzi_needed == 1 and len(hand) == 3:
-        if Mianzi(hand[0], hand[1], hand[2]).isvalid():
-            finished_hand.append(Mianzi(hand[0], hand[1], hand[2]))
-        return Mianzi(hand[0], hand[1], hand[2]).isvalid()
-    if quetou_needed == 1 and len(hand) == 2:
-        if Quetou(hand[0], hand[1]).isvalid():
-            finished_hand.append(Quetou(hand[0], hand[1]))
-        return Quetou(hand[0], hand[1]).isvalid()
-    # iteration method
-    # i j k 是面子的三张牌, 在手牌中不断向后移动寻找构成面子的牌
-    i = 0
-    j = i + 1
-    k = j + 1
-    while j < len(hand):
-        # 迭代: 因为只有一个雀头, 先尝试形成雀头; 
-        # 如果不能, 则该张牌一定是面子的组成部分.
-        if quetou_needed and Quetou(hand[i], hand[j]).isvalid():
-            iter_hand = hand[:] 
-            # slicing to create a copy 
-            # (instead of '=', which modifying the original list)
-            del iter_hand[j]
-            del iter_hand[i]
-            if hand_checker(iter_hand, mianzi_needed, quetou_needed - 1):
-                finished_hand.append(Quetou(hand[i], hand[j]))
-                return hand
-            else: 
-                pass
-                # 剩下手牌不能make, 说明不应该把这两张牌当成雀头
-        while k < len(hand):
-            if Mianzi(hand[i], hand[j], hand[k]).isvalid():
-                iter_hand = hand[:] 
-                del iter_hand[k] # trick: must delete from end to begin
-                del iter_hand[j]
-                del iter_hand[i]
-                if hand_checker(iter_hand, mianzi_needed - 1, quetou_needed):
-                    finished_hand.append(Mianzi(hand[i], hand[j], hand[k]))                   
-                    return hand
-                else: 
-                    k += 1 # 这张牌不能构成面子, 变量需要换成下一张牌继续尝试
-            else: 
-                k += 1
-        else:
-            j += 1 # j变化时, 要重置k的值
-            k = j + 1
-    return None
-
-def non_standard_form(hand, 
-    mianzi_needed=MIANZI_MAX, 
-    quetou_needed=QUETOU_MAX):
-    # non-standard form of mahjong
-    global finished_hand 
-    finished_hand = []
-
-    if mianzi_needed == MIANZI_MAX and quetou_needed == QUETOU_MAX:
-        # qiduizi (seven pairs)
-        i = 0
-        flag = True # 判断是否形成七对子
-        while i < len(hand) - 1:
-            if not Quetou(hand[i], hand[i + 1]).isvalid():
-                flag = False
-                break
-            finished_hand.append(Quetou(hand[i], hand[i + 1]))
-            i += 2
-        if flag:
-            # print('mahjong: qiduizi')
-            return True
-        # 十三幺: 静态匹配十三种和牌形即可.
-        yaojiu = hand_processer('19m19p19s1234567z')
-        # 生成十三种和牌形, use list comprehensions & sorted()
-        # 两次注意到返回值的问题..分别用+[]和sorted创建新对象
-        shisanyao = [sorted(yaojiu + [card], key=sort_hand) 
-                     for card in yaojiu]
-        # 循环判断是否一致
-        for shisanyao_hand in shisanyao:
-            if issamehand(shisanyao_hand, hand):
-                finished_hand = shisanyao_hand
-                return True
-    else:
-        return False
 
 def print_hand(hand):
     """print hand for testing
@@ -516,67 +348,11 @@ def sort_hand(card):
     """
     return card.get_suit(), card.get_rank()
 
-def mahjong_checker(hand, output_notes=False, raw_hand=False):
-    """ check if hand is mahjong
-
-    i: hand or raw hand(整理成列表和简写均可接受)
-    o: if the hand is mahjong or not. return True / False
-    output_notes is for printing info
-    """
-    global finished_hand 
-    finished_hand = []
-
-    if raw_hand: # process raw hand to hand if needed
-        hand = hand_processer(hand, check_input=True)
-    if hand:
-        # 1. non standard form
-        if non_standard_form(hand):
-            if output_notes:
-                print('Hand is mahjong. Wining hand is: ') 
-                # may need abstract as a variable
-                for i in format_finished_hand(finished_hand, 'qiduizi'):
-                    print(i, end= ' ')
-                print()                
-            return True
-        else:
-            finished_hand = [] # re-init global
-        # 2. standard form
-        if hand_checker(hand):
-            if output_notes:
-                print('Hand is mahjong. Wining hand is: ')
-                for i in format_finished_hand(finished_hand):
-                    print(i, end= ' ')
-                print()
-            return True
-        else:
-            if output_notes:
-                print('Hand is not mahjong.')
-            return False
-    else:
-        print('Hand is not valid.')
-        return False
-
-def format_finished_hand(finished_hand, kind='standard'):
-    # 整理和牌型结构
-    if kind is not 'standard':
-        # non-standard form 非标准型
-        return finished_hand
-    else:
-        # 1.reverse mahjong
-        finished_hand.reverse()
-        # 2.move quetou to last
-        for hand_set in finished_hand:
-            if type(hand_set) == Quetou:
-                quetou = hand_set
-                finished_hand.remove(hand_set)
-        finished_hand.append(quetou)
-        return finished_hand
-
 def hand_to_group(hand_todo, hand_set=Hand_in_group()):
     """把手牌整理为不同的牌组并计算向听数
 
     i: hand set 使用分类 hand_todo: Card的列表; hand_set: Hand_in_group class
-    p: 每张牌迭代
+    p: 每张牌迭代, 尝试加入每一个牌组之中. 或作为孤张(速度慢的主要原因, 大约 2^n 复杂度)
     o: 列表, 每个成员是 tuple (向听数, 牌组列表)
     """
     global list_xiangtingshu, xiangtingshu_lowest
@@ -628,8 +404,8 @@ def cal_xiangtingshu(hand, raw_hand=True, output_notes=False):
     """计算向听数的封装
 
     i: hand set 使用分类 hand_todo: Card的列表, 最好是13张
-    p: 先用hand_to_group分类; 再分别计算向听数
-    o: 最小向听数, 有效牌列表
+    p: 先用hand_to_group分类; 去重; 合并不同 group 的所有有效牌; 输出
+    o: 最小向听数, 有效牌数量, 有效牌列表
     """
     global list_xiangtingshu, xiangtingshu_lowest 
     #todo: 迭代无法传递, 故暂时使用了全局变量
@@ -639,7 +415,6 @@ def cal_xiangtingshu(hand, raw_hand=True, output_notes=False):
 
     hand = hand_processer(hand, raw_hand)
     hand_to_group(hand) # 1.处理成为手牌组
-    #print('group', len(list_xiangtingshu)) #
     if output_notes:
         print('向听数:', xiangtingshu_lowest) #
     unique_hands = []
@@ -659,36 +434,56 @@ def cal_xiangtingshu(hand, raw_hand=True, output_notes=False):
             else: # todo 查阅 for else
                 unique_youxiaopais.append(card)
     unique_youxiaopais.sort(key=sort_hand) # 排序, 稍作整理
+
+    num_youxiaopai = 0
+    for card in unique_youxiaopais:
+        num_youxiaopai += CARD_LEFT[str(card)]
+
     if output_notes:
         for card in unique_youxiaopais:
             print(card, end = '')
         print()
-    return xiangtingshu_lowest, unique_youxiaopais
+
+    return xiangtingshu_lowest, num_youxiaopai, unique_youxiaopais
 
 def xiangtingshu_output(hand, raw_hand=True):
+    """通过比较向听数和有效牌, 输出打某张, 向听数, 有效牌列表等何切信息
+
+    i: hand 最好是14张
+    p: 调用 cal_xiangtingshu(), 输出所有的可能最小向听数组合, 暂只支持标准型
+    o: 输出何切信息
+    """
     hand = hand_processer(hand, raw_hand)
     # todo: 只判断 unique card, 在重复型将可明显减少判断时间.
+
     xiangtingshu_lowest = 8
     best_cards = []
-    # 统计出最小向听数
     for card in hand: 
+        used_card(card)# 从牌山中去掉
+    # 统计出最小向听数
+    card0 = ''
+    for card in hand: 
+        if is_samecard(card, card0):
+            continue
+        else:
+            card0 = card
         hand_card = hand[:]
         hand_card.remove(card)         
-        xiangtingshu, list_youxiaopai = cal_xiangtingshu(hand_card, raw_hand=False)
+        xiangtingshu, num_youxiaopai, list_youxiaopai = cal_xiangtingshu(hand_card, raw_hand=False)
         if xiangtingshu < xiangtingshu_lowest:
-            best_cards = [(card, xiangtingshu, list_youxiaopai)]
+            best_cards = [(card, xiangtingshu, num_youxiaopai, list_youxiaopai)]
             xiangtingshu_lowest = xiangtingshu
         elif xiangtingshu == xiangtingshu_lowest:
-            best_cards.append((card, xiangtingshu, list_youxiaopai))
+            best_cards.append((card, xiangtingshu, num_youxiaopai, list_youxiaopai))
     # 输出
-    print('手牌:')
+    print('手牌: ', end = '')
     print_hand(hand) # 输出手牌内容
     #print(best_cards)
-    for card, xiangtingshu, list_youxiaopai in best_cards:
+    for card, xiangtingshu, num_youxiaopai, list_youxiaopai in best_cards:
         youxiaopai = ''
         for i in list_youxiaopai:
             youxiaopai += str(i)
-        print('打{}, 向听数{}, 有效牌{}'.format(card, xiangtingshu, youxiaopai))    
+        print('打{}, 向听数{}, 有效牌{}, {}种{}张'.format(card, xiangtingshu, youxiaopai, len(list_youxiaopai), num_youxiaopai))    
 
 def main():
     """main func.

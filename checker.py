@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 # Author: Frank-the-Obscure @ GitHub
-# a simple checker for mahjong: test if the cards makes a winning hand.
+# mahjong basic module
 
 import re
 import random
 
 class Card:
     """docstring for card"""
-    def __init__(self, card, flag=False):
+    def __init__(self, card):
         super(Card, self).__init__()
-        self.rank = int(re.search('[1-9]', card).group())
         self.suit = re.search('[mpsz]', card).group()
-        self.flag = flag        
+        if self.suit is 'z':
+            self.rank = int(re.search('[1-7]', card).group())
+        else:
+            self.rank = int(re.search('[1-9]', card).group())       
 
     def __str__(self):
         return str(self.rank) + self.suit
@@ -27,6 +29,37 @@ class Card:
 
     def set_flag(self, flag):
         self.flag = flag
+
+MIANZI = ['shunzi', 'kezi']
+QUETOU = ['duizi']
+DAZI = ['duizi', 'bianzhang', 'kanzhang', 'liangmian']
+GUZHANG = ['guzhang'] # init respones
+
+CARD_LIST = [str(rank) + suit 
+             for suit in ['m', 'p', 's', 'z'] 
+             for rank in range(1, 10) 
+             if rank in range(1,8) or suit is not 'z']
+
+CARD_LEFT = {card:4 for card in CARD_LIST}
+
+def init_paishan():
+    """ 生成136张牌山
+    i: nothing
+    o: a list of 136 random card
+    """
+    paishan_list = CARD_LIST * 4
+    random.shuffle(paishan_list)
+    return paishan_list
+
+def used_card(card): # 从字典中去掉用过的牌, card in Card class
+    CARD_LEFT[str(card)] -= 1
+
+
+VALID_LENGTH_OF_HAND = 14
+MIANZI_MAX = 4
+QUETOU_MAX = 1
+XIANGTINGSHU_MAX = 8
+finished_hand = [] # use this list for storing finished hand after iteration
 
 class Mianzi(object):
     """docstring for Mianzi"""
@@ -111,25 +144,6 @@ class Hand(object):
         return card.get_suit(), card.get_rank()
 '''
 
-CARD_LIST = [str(rank) + suit 
-             for suit in ['m', 'p', 's', 'z'] 
-             for rank in range(1, 10) 
-             if rank in range(1,8) or suit is not 'z']
-
-def init_paishan():
-    """ 生成136张牌山
-    i: nothing
-    o: a list of 136 random card
-    """
-    paishan_list = CARD_LIST * 4
-    random.shuffle(paishan_list)
-    return paishan_list
-
-VALID_LENGTH_OF_HAND = 14
-MIANZI_MAX = 4
-QUETOU_MAX = 1
-finished_hand = [] # use this list for storing finished hand after iteration
-
 def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
     """iterator for standard form
 
@@ -187,8 +201,8 @@ def hand_checker(hand, mianzi_needed=MIANZI_MAX, quetou_needed=QUETOU_MAX):
     return None
 
 def non_standard_form(hand, 
-                      mianzi_needed=MIANZI_MAX, 
-                      quetou_needed=QUETOU_MAX):
+    mianzi_needed=MIANZI_MAX, 
+    quetou_needed=QUETOU_MAX):
     # non-standard form of mahjong
     global finished_hand 
     finished_hand = []
@@ -225,7 +239,7 @@ def print_hand(hand):
 
     """
     for card in hand:
-        print(card, end=' ')
+        print(card, end='')
     print()
 
 def issamehand(hand1, hand2):
@@ -236,26 +250,15 @@ def issamehand(hand1, hand2):
     else:
         i = 0
         while i < len(hand1):
-            if not issamecard(hand1[i], hand2[i]):
+            if not is_samecard(hand1[i], hand2[i]):
                 return False
             i += 1
         return True
 
-def issamecard(card1, card2):
+def is_samecard(card1, card2):
     """判断两张牌是否相同
     """
-    if (card1.get_suit() == card2.get_suit() and 
-        card1.get_rank() == card2.get_rank()):
-        return True
-    else:
-        return False
-
-def isdazi(card1, card2):
-    # not for kanzhang now, 判断和牌暂时不包括坎张; not using
-    if card1.suit == card2.suit:
-        if card1.rank == card2.rank or card1.rank == card2.rank - 1 or card1.rank == card2.rank - 2:
-            return True
-    return False
+    return str(card1) == str(card2)
 
 def hand_processer(hand, raw_hand=True, length=VALID_LENGTH_OF_HAND, check_input=False):
     """ process raw hand to single card list
@@ -264,7 +267,6 @@ def hand_processer(hand, raw_hand=True, length=VALID_LENGTH_OF_HAND, check_input
     o: list of cards by Card class; 
     return None when wrong input & check input is True
     """
-    
     if not raw_hand:
         hand.sort(key=sort_hand)
         return hand
@@ -288,16 +290,17 @@ def hand_processer(hand, raw_hand=True, length=VALID_LENGTH_OF_HAND, check_input
     return hand_in_class
 
 def sort_hand(card):
-    """# reverse hand name to sort by suit first
+    """ reverse hand name to sort by suit first
 
-    i: card class
+    i: list of card class
     """
     return card.get_suit(), card.get_rank()
 
-def mahjong_checker(hand, output_notes=False, raw_hand=False):
-    """ check if hand is mahjong
+def mahjong_checker(hand, output_notes=False, raw_hand=True):
+    """判断是否和牌
 
     i: hand or raw hand(整理成列表和简写均可接受)
+    p: 可判断标准型 七对子和十三幺
     o: if the hand is mahjong or not. return True / False
     output_notes is for printing info
     """
@@ -350,80 +353,6 @@ def format_finished_hand(finished_hand, kind='standard'):
         finished_hand.append(quetou)
         return finished_hand
 
-def xiangtingshu(hand_todo, hand_set=[], list_of_parse=[]):
-    """判断向听数
-    i: hand set 使用分类
-    p: 每张牌迭代
-    o: 向听数
-    """
-    '''
-    print('hand_todo', end = ' ')
-    for i in hand_todo:
-        print(i, end = '')
-    print()
-    print('hand_set', end = ' ')
-    for i in hand_set:
-        for ii in i:
-            print(ii, end = ' ')
-        print(',', end = '')
-    print()'''
-    global list_xiangtingshu
-    if len(hand_todo) == 0: #finished
-        '''print("finished", end= ':')
-        for group in hand_set:
-            for card in group:
-                print(card, end = "")
-            print(',', end = "")
-        print()'''
-        list_xiangtingshu.append((len(hand_set),hand_set))
-        return list_xiangtingshu
-    card_to_set = hand_todo[0] # 需要处理的牌
-    #print('card to process', card_to_set) #
-
-    for group in hand_set:
-        #print(setted, card_to_set,'list, card') #调试信息
-        # 如果是已完成面子, 略过
-        group_type = type_of_cards(group)
-        plus_card_type = type_of_cards(group + [card_to_set])
-        #print(type_of_cards(setted), hand_todo[0])# 
-
-        if group_type is "mianzi": 
-            # 如果已是面子, 无法添加, 则与孤张处理一样
-            pass
-        elif type_of_cards(group) is "dazi" and plus_card_type is "mianzi":
-            # 如果是搭子, 并可与新牌组成面子
-            #print('make mianzi')
-            hand_set_new = hand_set[:]
-            hand_set_new.remove(group)
-            hand_set_new.append(group + [card_to_set])
-            xiangtingshu(hand_todo[1:], hand_set_new)
-        elif group_type is "single" and plus_card_type is "dazi":
-            # 如果是孤张, 并可与新牌组成搭子
-            #print('make dazi')
-            hand_set_new = hand_set[:]
-            hand_set_new.remove(group)
-            hand_set_new.append(group + [card_to_set])
-            xiangtingshu(hand_todo[1:], hand_set_new)
-    #print('end for')
-    xiangtingshu(hand_todo[1:], hand_set + [[card_to_set]])# 孤张处理
-
-def type_of_cards(list_of_card):
-    """判断手牌组类型
-    """
-    #print('list',list_of_card)
-    if len(list_of_card) == 0:
-        return None
-    elif len(list_of_card) == 1:
-        return "single"
-    elif len(list_of_card) == 2 and \
-         isdazi(list_of_card[0], list_of_card[1]):
-        return "dazi"
-    elif len(list_of_card) == 3 and \
-         Mianzi(list_of_card[0], list_of_card[1], list_of_card[2]).isvalid():
-        return "mianzi"
-    else: 
-        return None
-
 def main():
     """main func.
 
@@ -435,21 +364,8 @@ def main():
         script, input_hand = argv
     except ValueError:
         input_hand = input('input hand: ')
-    mahjong_checker(input_hand)
+
+    mahjong_checker(input_hand, output_notes=True)
 
 if __name__ == '__main__':
-    #main()
-    test_hand = hand_processer('55789m1456p569s44z')
-    list_xiangtingshu = []
-    xiangtingshu(test_hand)
-    lowest_num = len(test_hand)
-    for num, hand in list_xiangtingshu: # find lowest number
-        if num < lowest_num:
-            lowest_num = num
-    for num, hand in list_xiangtingshu: # 
-        if num == lowest_num:
-            for group in hand:
-                for card in group:
-                    print(card, end = "")
-                print(',', end = " ")
-            print(num)
+    main()
