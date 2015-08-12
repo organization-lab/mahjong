@@ -3,14 +3,16 @@
 # mahjong AI
 
 import mahjong
+import autogui
+import time
 
 def heqie(hand, output_notes=False):
     """何切函数
 
-    i: 14 card
+    i: 14 card Class
     p: 比较打每张牌的向听数和有效牌
         暂时只比较种类, 不考虑张数不同
-    o: 打某张牌
+    o: 打某张牌, 及向听数
     """
     xiangtingshu_lowest = 8
     youxiaopai_max = 0
@@ -28,12 +30,12 @@ def heqie(hand, output_notes=False):
         hand_card = hand[:]
         hand_card.remove(card) 
         xiangtingshu, num_youxiaopai, list_youxiaopai = mahjong.cal_xiangtingshu(hand_card, raw_hand=False)
-        if xiangtingshu < xiangtingshu_lowest: #最小向听数
+        if xiangtingshu < xiangtingshu_lowest: #最小向听数 
             best_card = (card, xiangtingshu, num_youxiaopai, list_youxiaopai)
             xiangtingshu_lowest = xiangtingshu
             youxiaopai_max = num_youxiaopai
         elif (xiangtingshu == xiangtingshu_lowest and 
-              num_youxiaopai > youxiaopai_max): # 或者有效牌更多
+              num_youxiaopai > youxiaopai_max): # 或者相同向听数,但有效牌更多
             best_card = (card, xiangtingshu, num_youxiaopai, list_youxiaopai)
             youxiaopai_max = num_youxiaopai
         card0 = card
@@ -81,8 +83,53 @@ def heqie_tester():
     else:
         print('牌山没牌了.')
 
+def ai():
+    """ai using 国标v1.30
+    读取手牌-(读取新摸牌-切牌)
+    """
+    raw_hand = autogui.get_hand()
+    hand = mahjong.hand_processer(raw_hand, raw_hand=True)
+
+    for card in hand:
+        mahjong.used_card(card) # 计算剩余牌量
+
+    while True: 
+        time.sleep(1)
+        autogui.pass_mingpai()
+        time.sleep(1)
+        autogui.pass_mingpai()
+        time.sleep(1)
+        autogui.pass_mingpai()
+        time.sleep(1)
+
+        new_card = autogui.get_card() # 出一张牌
+        mahjong.used_card(new_card) # 计算剩余牌量
+        print('hand: ', end = '')
+        hand.sort(key=mahjong.sort_hand)
+        mahjong.print_hand(hand)
+        print('new card', new_card)
+        hand_plus = hand + [mahjong.Card(new_card)]
+        discard_card, xiangtingshu = heqie(hand_plus, output_notes=True)
+        print('discard card:', discard_card)
+        print('xiangtingshu:', xiangtingshu)
+        if discard_card:
+            for card in hand:
+                if mahjong.is_samecard(card, discard_card):
+                    print('切第n张:', hand.index(card))
+                    autogui.qiepai(hand.index(card))
+                    hand_plus.remove(card)
+                    hand = hand_plus
+                    break
+            else:
+                autogui.qiepai(13)
+        else:
+            print('和牌')
+            return True
+    else:
+        print('牌山没牌了.')
+
 def main():
-    heqie_tester()
+    ai()
 
 if __name__ == '__main__':
     main()
